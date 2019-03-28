@@ -9,15 +9,11 @@ matrix:
       sudo: true
 # command to install dependencies
 install:
-  - pip install -r backend/requirements.txt
+  - pip install -r requirements.txt
 # command to run tests
 script:
-  - cd backend
   - python3 -m unittest discover -v -s tests/
-  - pylint --errors-only backend/
-  - cd ..
-
-
+  - pylint --errors-only .
 
 # Cache Gcloud SDK between commands
 cache:
