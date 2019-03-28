@@ -5,10 +5,10 @@ Website is available [here](http://35.193.175.5).
 Api backend is available here [here](http://35.188.130.122/api/v0).  
 
 Included functionality:
-- Flask server
-- MongoDB interface
+- Flask server deployed with Gunicorn
+- MongoDB database (running on MongoDB atlas)
 - Tests
-- need to add more
+- Soon to include Redis caching
 
 ## Building 
 
@@ -34,6 +34,9 @@ $ make test
 Currently deploying using Docker.  
 Ensure Docker is installed on your machine before continuing.  
 Python WSGI application deployed behind Gunicorn.  
+Targets included in Makefile.
+
+Manually: 
 ```bash
 $ docker build . -t samjett/ou-reviews-api
 $ docker run -p 5051:5050 samjett/ou-reviews-api:latest
