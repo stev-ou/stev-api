@@ -1,7 +1,5 @@
 # Backend Repo
-
-[![Build Status](https://travis-ci.com/samjett247/OU-Student-Reviews-DB.svg?token=SVpA8x2aEJENtpVkhC28&branch=master)](https://travis-ci.com/samjett247/OU-Student-Reviews-DB)
-
+[![Build Status](https://travis-ci.com/stev-ou/stev-api.svg?branch=master)](https://travis-ci.com/stev-ou/stev-api)  
 Website is available [here](http://35.193.175.5).  
 
 Api backend is available here [here](http://35.188.130.122/api/v0).  
