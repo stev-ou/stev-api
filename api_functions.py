@@ -84,6 +84,7 @@ def query_df_from_mongo(db,coll_filter, collections = COLLECTION_NAMES):
         print('The below filter was not found within any of the mongo collections in COLLECTION_NAMES')
         pprint.pprint(coll_filter)
         raise Exception('The filter was not found in the mongo collections in COLLECTION_NAMES')
+
     return df, coll_name
 
 def drop_duplicate_courses(df):
@@ -126,7 +127,7 @@ def CourseFig1Table(db, uuid):
     # The following is a very crappy way to get a list of unique indices that are in the order of the semesters
     #######
     # Define the instructor list
-    instructor_list = list(reversed(list(df.drop_duplicates('Instructor ID', inplace=False)['Instructor ID'])))
+    instructor_list = list(df.drop_duplicates('Instructor ID', inplace=False)['Instructor ID'])
     term_code_list = list(df.drop_duplicates(['Instructor ID','Term Code'], inplace=False)['Term Code'])
 
     # Sort the term code list using prebuilt function
@@ -136,18 +137,11 @@ def CourseFig1Table(db, uuid):
     dict_term_list = {k: v for v, k in enumerate(term_code_list)}
 
     # Add the column as a mapping to the df
-    instructor_list_ind = df['Term Code'].replace(dict_term_list, inplace=False).sort_values().index
+    df['sorter'] = df['Term Code']
 
-    # Make sure that we have a unique list of instructors, starting from the top and dropping later instructors
-    instr_list= []
-    instr_ind_list = []
-    for p in instructor_list_ind:
-        if df.at()[p, 'Instructor ID'] not in instr_list:
-            instr_list.append(df.at()[p, 'Instructor ID'])
-            instr_ind_list.append(p)
-        else:
-            continue
-    #########
+    df['sorter'].replace(dict_term_list, inplace=True)
+    df.sort_values('sorter', inplace=True)
+    instructor_list = list(df.drop_duplicates('Instructor ID', inplace=False)['Instructor ID'])
 
     # Get the large df with all of the instructors
     coll_filter = {'$and':[
@@ -156,23 +150,17 @@ def CourseFig1Table(db, uuid):
 
     df_main, coll_name = query_df_from_mongo(db, coll_filter, collections = [coll_name])
 
-    for i in instr_ind_list:
+    for inst_id in instructor_list:
         # need to average all ratings across all classes taught by each instructor
-        # Do this by getting inst_id - all classes taught by this instructor
-        inst_id = int(df.at()[i, 'Instructor ID'])
 
         df_inst = df_main[(df_main['Instructor ID']==inst_id)] # Made df_inst once and then slice it for each instructor
 
-        total = 0
-        count = 0
-        for x in df_inst.index: 
-            total += df_inst.at()[x, 'Avg Instructor Rating In Section']
-            count += 1
-        avg = round(total/count, 7)
+        avg = df_inst['Avg Instructor Rating In Section'].mean()
 
         # Define a list of the term codes this instructor has taught
-        term_code_list = [SEMESTER_MAPPINGS[str(i)] for i in list(df[(df['Instructor ID']==df.at()[i, 'Instructor ID'])]["Term Code"])]
-        term_code_list = list(reversed(list(term_code_list)))
+        term_code_list = df_inst[df_inst['course_uuid']==uuid]['Term Code']
+        term_code_list = sort_by_term_code(term_code_list)
+        term_code_list = [SEMESTER_MAPPINGS[str(i)] for i in term_code_list]
         terms_taught = ''
         for j in term_code_list:
             terms_taught += j
@@ -182,8 +170,8 @@ def CourseFig1Table(db, uuid):
                 break
 
         inst = {
-            "name": df.at()[i, "Instructor First Name"] + ' ' + df.at()[i, "Instructor Last Name"],
-            "crs rating": np.mean(list(df[(df['Instructor ID']==df.at()[i, 'Instructor ID'])]["Avg Instructor Rating In Section"])),
+            "name": str(df_inst["Instructor First Name"].unique()[0] + ' ' + df_inst['Instructor Last Name'].unique()[0]),
+            "crs rating": df[df['Instructor ID']==inst_id]['Avg Instructor Rating In Section'].mean(),
             "avg rating": avg,
             "term": terms_taught
             }
@@ -296,11 +284,10 @@ def CourseFig3Timeseries(db, valid_uuid):
 
     # Fill in the semesters that the course was found, in order of term
     term_codes = list(df['Term Code'].unique())
-    print(len(term_codes))
 
     term_codes = sort_by_term_code(term_codes)
+    term_codes.reverse() # Reverse so that when they're appended in order
 
-    print(len(term_codes))
     terms = [SEMESTER_MAPPINGS[str(term)] for term in term_codes]
     response['result']['course over time']['semesters'] = terms
     response['result']['dept over time'] = {'dept name': df['Subject Code'].unique()[0],'ratings':[],'semesters': terms}
@@ -411,10 +398,10 @@ def InstructorFig1Table(db, instructor_id):
     of the courses taught by this instructor.
     The courses will be returned with the dept name, course number, course name, specific course rating, and term
     """
-    # Construct the json containing necessary data for figure 1 on instructor page
-    ret_json = {"result": {
-        "instructor name": "",
-        "courses": []}}
+
+
+    # Construct the json containing necessary data for figure 1 on course page
+    ret_json = {"result": {"courses": []}}
 
     # filter that we use on the collection
     coll_filter = {'$and':[
@@ -422,28 +409,57 @@ def InstructorFig1Table(db, instructor_id):
             {"Term Code": {'$in': CURRENT_SEMESTERS}}]}
 
     df, coll_name = query_df_from_mongo(db, coll_filter)
+    course_list = list(df.drop_duplicates('course_uuid', inplace=False)['course_uuid'])
 
-    # Sort the df by term code
-    sorted_list_terms = sort_by_term_code(set(list(df['Term Code'])))
+    # Get a list of unique courses that are in the order of the semesters
+    # Sort the term code list using prebuilt function
+    term_code_list = sort_by_term_code(list(df.drop_duplicates(['course_uuid','Term Code'], inplace=False)['Term Code']))
 
     # Create the dict for this sorted term code list
-    dict_term_list = {k: v for v, k in enumerate(sorted_list_terms)}
+    dict_term_list = {k: v for v, k in enumerate(term_code_list)}
 
     # Add the column as a mapping to the df
     df['sorter'] = df['Term Code']
-    instructor_list_ind = df['sorter'].replace(dict_term_list, inplace=True)
-    df.sort_values(by=['sorter'], ascending=True,inplace=True)
+    df['sorter'].replace(dict_term_list, inplace=True)
+    df.sort_values('sorter', inplace=True)
+    course_list = list(df.drop_duplicates('course_uuid', inplace=False)['course_uuid'])
 
-    for index, row in df.iterrows():
-        course_inst = {}
-        course_inst["dept name"] = row["Subject Code"]
-        course_inst["course number"] = row["Course Number"]
-        course_inst["course name"] = row["Course Title"]
-        course_inst["instr_rating_in_course"] = row["Avg Instructor Rating In Section"]
-        course_inst["term"] = SEMESTER_MAPPINGS[str(row["Term Code"])]
-        ret_json["result"]["courses"].append(course_inst)
-    ret_json["result"]["instructor name"] = row["Instructor First Name"] + " " + row["Instructor Last Name"]
+    # Get the large df with all of the instructors
+    coll_filter = {'$and':[
+    {"course_uuid":{'$in':course_list}},
+    {"Term Code": {'$in': CURRENT_SEMESTERS}}]}
 
+    df_main, coll_name = query_df_from_mongo(db, coll_filter, collections = [coll_name])
+
+    for crs in course_list:
+        df_crs = df_main[(df_main['course_uuid']==crs)] # Made df_crs once and then slice it for each instructor
+
+        avg = df_crs['Avg Instructor Rating In Section'].mean()
+
+        # Define a list of the term codes this instructor has taught
+        term_code_list = df_crs[df_crs['Instructor ID']==instructor_id]['Term Code']
+        term_code_list = sort_by_term_code(term_code_list)
+        term_code_list = [SEMESTER_MAPPINGS[str(i)] for i in term_code_list]
+        terms_taught = ''
+        for j in term_code_list:
+            terms_taught += j
+            if j != term_code_list[-1]:
+                terms_taught+=', '
+            else:
+                break
+        inst = {
+            "course name": df_crs['Course Title'].unique()[0],
+            'course number': int(df_crs['Course Number'].unique()[0]),
+            'dept name': df_crs['Subject Code'].unique()[0],
+            "instr_rating_in_course": df_crs[df_crs['Instructor ID'] == instructor_id]["Avg Instructor Rating In Section"].mean(),
+            'avg_course_rating': avg,
+            "term": terms_taught
+            }
+
+        ret_json["result"]["courses"].append(inst)
+
+    ret_json['result']['instructor name'] = str(df['Instructor First Name'].unique()[0])+ ' ' + str(df['Instructor Last Name'].unique()[0])
+                
     return ret_json
 
 
@@ -673,7 +689,6 @@ def SearchAutocomplete(db, search_type='course'):
     else:
         df['label'] = df['Instructor First Name']+' '+ df['Instructor Last Name']
         return_list = [{'label':row['label'], 'value':row[search_key]} for index, row in df.iterrows()]
-
     return return_list
 
 if __name__ == '__main__':
@@ -683,7 +698,8 @@ if __name__ == '__main__':
     # sort_by_term_code([201710, 201820, 201620, 201410, 201110, 201630, 201610])
 
     # uuid_df, coll_name = query_df_from_mongo(mongo_driver(),cursor)
-    pprint.pprint(CourseFig3Timeseries(mongo_driver(), 'engr2002'))
+    # pprint.pprint(CourseFig1Table(mongo_driver(), 'engr2002'))
+    pprint.pprint(InstructorFig1Table(mongo_driver(), 112131147))
     # pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 112131147))
     # pprint.pprint(InstructorFig3TableBar(mongo_driver(), 112131147))
     # print(SearchAutocomplete(mongo_driver(), 'instructor'))
