@@ -33,9 +33,10 @@ with open(file_path) as f:
     SEMESTER_MAPPINGS = mappings['Term_code_dict']
 
 # Sort by term code
+
 def sort_by_term_code(semester_int_list):
     """
-    Input a list of term codes, it will sort the term code list and return the same list with most recent term first.
+    Input a list of term codes, it will sort the term code list and return the same list sorted in order of term.
 
     """
     year_list = [int(str(i)[0:4]) for i in semester_int_list]
@@ -43,14 +44,14 @@ def sort_by_term_code(semester_int_list):
     final_order = []
     for year in year_list:
         # Find the semesters of the year
-        sems = [sem for sem in semester_int_list if str(sem)[0:4] == str(year) ]
+        sems = [sem for sem in semester_int_list if str(sem)[0:4] == str(year)]
         for ending in ['10', '30', '20']:
             for sem in sems:
-                if str(sem)[-2:] == ending:
+                if str(sem)[-2:] == ending and sem not in final_order:
                     final_order.append(sem)
     if set(final_order)!=set(semester_int_list):
         raise Exception('Sorting term codes didnt work for api generator')
-    return final_order # return the most recent sem as a term code
+    return final_order# return the most recent sem as a term code
 
 
 # Get the collection of interest from the db, based on a filter and potentially a known collection
@@ -95,6 +96,9 @@ def drop_duplicate_courses(df):
         df.drop(df[(df['Course Title']!=most_frequent_course)].index, inplace=True)
     return
 
+
+###### APIs for Searchby course ########
+
 def CourseFig1Table(db, uuid):
     '''
     This function will take one validated course-based uuid in the aggregated database and will
@@ -126,13 +130,13 @@ def CourseFig1Table(db, uuid):
     term_code_list = list(df.drop_duplicates(['Instructor ID','Term Code'], inplace=False)['Term Code'])
 
     # Sort the term code list using prebuilt function
-    sort_by_term_code(term_code_list)
+    term_code_list = sort_by_term_code(term_code_list)
 
     # Create the dict for this sorted term code list
     dict_term_list = {k: v for v, k in enumerate(term_code_list)}
 
     # Add the column as a mapping to the df
-    instructor_list_ind = df.drop_duplicates(['Instructor ID', 'Term Code'], inplace=False)['Term Code'].map(dict_term_list).sort_values().index
+    instructor_list_ind = df['Term Code'].replace(dict_term_list, inplace=False).sort_values().index
 
     # Make sure that we have a unique list of instructors, starting from the top and dropping later instructors
     instr_list= []
@@ -155,14 +159,13 @@ def CourseFig1Table(db, uuid):
     for i in instr_ind_list:
         # need to average all ratings across all classes taught by each instructor
         # Do this by getting inst_id - all classes taught by this instructor
-        # Necessary to cast int here since MongoDB cannot use Int64
         inst_id = int(df.at()[i, 'Instructor ID'])
 
         df_inst = df_main[(df_main['Instructor ID']==inst_id)] # Made df_inst once and then slice it for each instructor
 
         total = 0
         count = 0
-        for x in df_inst.index:  # SAM - modified so we dont have to access collection here
+        for x in df_inst.index: 
             total += df_inst.at()[x, 'Avg Instructor Rating In Section']
             count += 1
         avg = round(total/count, 7)
@@ -187,10 +190,6 @@ def CourseFig1Table(db, uuid):
 
         ret_json["result"]["instructors"].append(inst)
 
-    # SAM - reverse the results so that it plots most recent semesters first
-    # ret_json['result']['instructors'] = list(reversed(ret_json['result']['instructors']))
-
-    # SAM - Added a couple other features to ret_json for plotting a title on the frontend
     ret_json['result']['course name'] = str(df['Course Title'][0])
     ret_json['result']['dept name'] = str(df['Subject Code'][0])
     ret_json['result']['course number'] = str(df['Course Number'][0])
@@ -297,7 +296,11 @@ def CourseFig3Timeseries(db, valid_uuid):
 
     # Fill in the semesters that the course was found, in order of term
     term_codes = list(df['Term Code'].unique())
-    sort_by_term_code(term_codes)
+    print(len(term_codes))
+
+    term_codes = sort_by_term_code(term_codes)
+
+    print(len(term_codes))
     terms = [SEMESTER_MAPPINGS[str(term)] for term in term_codes]
     response['result']['course over time']['semesters'] = terms
     response['result']['dept over time'] = {'dept name': df['Subject Code'].unique()[0],'ratings':[],'semesters': terms}
@@ -399,92 +402,7 @@ def CourseFig4TableBar(db, valid_uuid):
 
     return response
 
-def query_function(db, query, field_to_search):
-    '''
-    This function will perform substring querying on a given field in the db, to match an arbitrary user search to an 
-    instance in the db. The function splits the input string 'query' by letter/number interface and whitespace delimiters, 
-    and then searches for each of these in the DB field_to_search. Based on the frequency of appearance, the function then 
-    returns a list of the most likely uuid's for the given search.
-
-    inputs:
-    db: a connection to the db
-    query: a string query, unaltered
-    collections_to_search: a list of distinct collections to look through to try to find the given uuid
-    field_to_search: a single field to search in the db collection
-        - If needed, create a new queryable search field in the data_aggregation.py for your desired search
-            See Queryable Course String field for example of this.
-
-    '''
-    # Error check to make sure the query exists
-    if query == '':
-        print('Empty search string was passed to the query function')
-        return []
-
-
-    #Split the query by the assumed space delimiter
-    query_list_initial = query.split(' ')
-
-    # Split any unsplit entries at letter/number interface or symbol, e.g. :
-    query_list = []
-    for q in query_list_initial:
-        split = re.split('(\d+)',q)
-        for i in split:
-            if i != '' and i not in query_list:
-                query_list.append(i)
-
-    # Search through the list of valid collections to find the proper college for the course search
-    # Create an index to relate uuid query results to the query
-    query_match_results = {}
-
-    for coll in COLLECTION_NAMES:
-        for query in query_list:
-            # Find the query in the collection
-            collection = db.get_db_collection(DB_NAME, coll)
-            collection.create_index([(field_to_search, 'text')])
-            test_data = collection.find({"$text": {"$search": query}}, {'course_uuid':1, '_id':0})
-            # print(list(set([item['course_uuid'] for item in list(test_data)])))
-
-            # Add the query to the query_match_results if it isnt already in there, if it is leave it and delete duplicates
-            if query not in query_match_results.keys():
-                query_match_results[query] = list(set([item['course_uuid'] for item in list(test_data)]))
-            else:
-                new_set = set(query_match_results[query] + list(set([item['course_uuid'] for item in list(test_data)])))
-                query_match_results[query] = list(new_set)
-
-    # Compare the query_match_results to one another to find the optimal response
-    # Combine all of the lists
-    full_q_list = []
-    for q in query_list:
-        for e in query_match_results[q][:]:
-            full_q_list.append(e)
-
-    # Get the max number of repeat list occurrences
-    full_q_list = Counter(full_q_list).most_common(len(full_q_list))
-
-    if len(full_q_list) == 0:
-        print('Using the query function, the query ' + query + ' was not found in the field ' + field_to_search)
-        return []
-
-    # If there is equal number of occurences for the first and second uuid, return all of the most frequent occurences
-    elif full_q_list[0][1]==full_q_list[1][1]:
-        result_list = [full_q_list[0][0], full_q_list[1][0]]
-        for i in range(2,len(full_q_list)):
-            if full_q_list[i][1] == full_q_list[0][1]:
-                result_list.append(full_q_list[i][0])
-
-    # If the most frequent occurence is 1, just return the list with the lowest number of findings
-    elif full_q_list[0][1] == 1:
-        result_list = query_match_results[query_list[0]]
-        for i in query_match_results.keys():
-            if len(query_match_results[i])!=0 and len(query_match_results[i])<len(result_list):
-                result_list = query_match_results[i]
-    
-    # Else there is a single max occurence in the list, and this is all we will return            
-    else:
-        result_list = [full_q_list[0][0]]
-
-    return result_list
-
+###### APIs for Searchby instructor ########
 
 #Feel free to rename this, just keeping it explicit so its easy to find
 def InstructorFig1Table(db, instructor_id):
@@ -505,7 +423,18 @@ def InstructorFig1Table(db, instructor_id):
 
     df, coll_name = query_df_from_mongo(db, coll_filter)
 
-    for index, row in sorted(df.iterrows(), reverse=True):
+    # Sort the df by term code
+    sorted_list_terms = sort_by_term_code(set(list(df['Term Code'])))
+
+    # Create the dict for this sorted term code list
+    dict_term_list = {k: v for v, k in enumerate(sorted_list_terms)}
+
+    # Add the column as a mapping to the df
+    df['sorter'] = df['Term Code']
+    instructor_list_ind = df['sorter'].replace(dict_term_list, inplace=True)
+    df.sort_values(by=['sorter'], ascending=True,inplace=True)
+
+    for index, row in df.iterrows():
         course_inst = {}
         course_inst["dept name"] = row["Subject Code"]
         course_inst["course number"] = row["Course Number"]
@@ -560,7 +489,18 @@ def InstructorFig2Timeseries(db, instructor_id):
     # used to keep track of which departments this professor has taught in
     departments = []
 
-    for index, row in sorted(df.iterrows(), reverse=True):
+    # Sort the df by term code
+    sorted_list_terms = sort_by_term_code(set(list(df['Term Code'])))
+
+    # Create the dict for this sorted term code list
+    dict_term_list = {k: v for v, k in enumerate(sorted_list_terms)}
+
+    # Add the column as a mapping to the df
+    df['sorter'] = df['Term Code']
+    instructor_list_ind = df['sorter'].replace(dict_term_list, inplace=True)
+    df.sort_values(by=['sorter'], ascending=False,inplace=True)
+
+    for index, row in df.iterrows():
         # set instructor name on first iteration
         if index == 0:
             ret_json["result"]["instructor name"] = row["Instructor First Name"] + " " + row["Instructor Last Name"]
@@ -651,7 +591,8 @@ def InstructorFig3TableBar(db, instructor_id):
     count = 0
 
     # Create a list of Courses
-    df['course'] = df['Subject Code']+df['Course Number'].astype(str)+': '+df['Section Title']
+    df['course long name'] = df['Subject Code']+df['Course Number'].astype(str)+': '+df['Section Title']
+    df['course'] = df['Subject Code']+df['Course Number'].astype(str)
 
     # Get list of unique courses and add to ret_json
     unique_courses = list(df['course'].unique())
@@ -684,7 +625,7 @@ def InstructorFig3TableBar(db, instructor_id):
     return ret_json
 
 
-##########
+######################
 
 # Define the function to pull all of the courses or instructors as a dict of labels and values
 def SearchAutocomplete(db, search_type='course'):
@@ -735,7 +676,6 @@ def SearchAutocomplete(db, search_type='course'):
 
     return return_list
 
-
 if __name__ == '__main__':
     # Test the db search
     # test = [201410, 201420, 201530, 201620, 201230, 201810]
@@ -743,10 +683,10 @@ if __name__ == '__main__':
     # sort_by_term_code([201710, 201820, 201620, 201410, 201110, 201630, 201610])
 
     # uuid_df, coll_name = query_df_from_mongo(mongo_driver(),cursor)
-    # pprint.pprint(InstructorFig1Table(mongo_driver(), 112131147))
+    pprint.pprint(CourseFig3Timeseries(mongo_driver(), 'engr2002'))
     # pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 112131147))
     # pprint.pprint(InstructorFig3TableBar(mongo_driver(), 112131147))
-    print(SearchAutocomplete(mongo_driver(), 'instructor'))
+    # print(SearchAutocomplete(mongo_driver(), 'instructor'))
 
 
 
