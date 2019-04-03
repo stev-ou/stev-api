@@ -44,10 +44,10 @@ def sort_by_term_code(semester_int_list):
     final_order = []
     for year in year_list:
         # Find the semesters of the year
-        sems = [sem for sem in semester_int_list if str(sem)[0:4] == str(year) ]
+        sems = [sem for sem in semester_int_list if str(sem)[0:4] == str(year)]
         for ending in ['10', '30', '20']:
             for sem in sems:
-                if str(sem)[-2:] == ending:
+                if str(sem)[-2:] == ending and sem not in final_order:
                     final_order.append(sem)
     if set(final_order)!=set(semester_int_list):
         raise Exception('Sorting term codes didnt work for api generator')
@@ -296,7 +296,11 @@ def CourseFig3Timeseries(db, valid_uuid):
 
     # Fill in the semesters that the course was found, in order of term
     term_codes = list(df['Term Code'].unique())
+    print(len(term_codes))
+
     term_codes = sort_by_term_code(term_codes)
+
+    print(len(term_codes))
     terms = [SEMESTER_MAPPINGS[str(term)] for term in term_codes]
     response['result']['course over time']['semesters'] = terms
     response['result']['dept over time'] = {'dept name': df['Subject Code'].unique()[0],'ratings':[],'semesters': terms}
@@ -587,7 +591,8 @@ def InstructorFig3TableBar(db, instructor_id):
     count = 0
 
     # Create a list of Courses
-    df['course'] = df['Subject Code']+df['Course Number'].astype(str)+': '+df['Section Title']
+    df['course long name'] = df['Subject Code']+df['Course Number'].astype(str)+': '+df['Section Title']
+    df['course'] = df['Subject Code']+df['Course Number'].astype(str)
 
     # Get list of unique courses and add to ret_json
     unique_courses = list(df['course'].unique())
@@ -678,7 +683,7 @@ if __name__ == '__main__':
     # sort_by_term_code([201710, 201820, 201620, 201410, 201110, 201630, 201610])
 
     # uuid_df, coll_name = query_df_from_mongo(mongo_driver(),cursor)
-    pprint.pprint(InstructorFig1Table(mongo_driver(), 112131147))
+    pprint.pprint(CourseFig3Timeseries(mongo_driver(), 'engr2002'))
     # pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 112131147))
     # pprint.pprint(InstructorFig3TableBar(mongo_driver(), 112131147))
     # print(SearchAutocomplete(mongo_driver(), 'instructor'))
