@@ -29,12 +29,16 @@ Instructor_question_weighting:
         '4': 1
         '6': 1
         '8': 1
-
+    AS:
+        '4': 1
+        '5': 1
+        '6': 1
+        '8': 1
+        '11': 1
 
 
 # This maps all questions to equal values. Not perfect but its a temp solution, pending improvement.
 
-# 
 # The term code dict maps the term code (6 digit code) to a more readable format (e.g., Spring 2017)
 Term_code_dict: {'201010': 'Fall 2010',
  '201020': 'Spring 2010',
