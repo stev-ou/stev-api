@@ -14,7 +14,7 @@ import numpy as np
 DB_NAME = "reviews-db"
 
 # This is the set of that will be queried by the API
-COLLECTION_NAMES = ["aggregated_GCOE", "aggregated_JRCOE"]
+COLLECTION_NAMES = ["aggregated_GCOE", "aggregated_JRCOE", "aggregated_COAS"]
 
 # This is the period that will be considered "current" by the API. 
 # These are term codes, where the first 4 digits corresponds to year, last 2 digits to semester (10:fall, 20:spring, 30:summer), 
