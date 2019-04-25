@@ -4,7 +4,7 @@ debug:
 
 .PHONY: image
 image:
-	docker build . -t samjett/ou-reviews-api
+	docker build . -t gcr.io/ou-reviews/stev-api
 
 .PHONY: test
 test:
