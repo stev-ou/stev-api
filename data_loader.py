@@ -8,6 +8,8 @@ from data_aggregation import aggregate_data
 
 # Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
 DB_NAME = "reviews-db"
+OCR_DB_NAME = 'ocr_db'
+ocr_collections = ['ARC']#['ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 
 ### DEBUG - force_update is always true - off in prod
 def update_database(force_update=False):
@@ -28,44 +30,67 @@ def update_database(force_update=False):
     # Gets the list of data documents to be checked and potentially inserted. Removes non csv files
     data_files = os.listdir('data/')
 
-    # Inform about non csv files
-    for file in data_files: 
-        if file[-4:] != '.csv':
-            print('The file ' + file + ' is located in the data/ directory, but cannot be uploaded to the DB, because it is not a .csv')
-            data_files.remove(file)
-      
-    for data_file in data_files:
+    db_dfs = {}
+    # TEMPORARY COMMENT OUT
+    # for file in data_files: 
+    #     # Inform about non csv files
+    #     if file[-4:] != '.csv':
+    #         print('The file ' + file + ' is located in the data/ directory, but cannot be uploaded to the DB, because it is not a .csv')
+    #         data_files.remove(file)
+    #     # Convert the relevant .csv data files to df and put into db_df_list
+    #     else:
+    #         print('Converting the file ' + file + ' to pd dataframe.')
+    #         # Reading data into python from the csv
+    #         df = pd.read_csv('data/'+file)
+    #         # Hash the Instructor ID value 
+    #         df['Instructor ID'] = df['Instructor 1 ID'].apply(hash)
+    #         # Add to dfs to be inserted into db
+    #         db_dfs[file[:-4]] = df
+
+    # Add OCR collections to the db_dfs
+    for ocr_coll in ocr_collections:
+        print('Converting the scraped collection '+ocr_coll+ ' to pd dataframe.')
+        ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
+        df = pd.DataFrame(list(ocr_db.find()))
+        # TEMPORARY WORKAROUND
+        df['Responses'] = 10
+        print(df.columns)
+        df.drop(['_id'],axis=1, inplace=True)
+        db_dfs[ocr_coll] = df # Create a df and add it to the dict
+
+    for df_name in db_dfs.keys():
+        print('Loading '+df_name)
         # If the collection doesnt exist or if the update is forced
-        if conn.collection_existence_check(DB_NAME, data_file[:-4])==False or force_update:
-            collection = conn.get_db_collection(DB_NAME,data_file[:-4] )
+        if conn.collection_existence_check(DB_NAME, df_name)==False or force_update:
+            collection = conn.get_db_collection(DB_NAME, df_name )
 
             # Delete all of the current contents from the collection
             collection.delete_many({})
 
-            # Reading data into python from the csv
-            df = pd.read_csv('data/'+data_file)
+            # Get the dataframe
+            df = db_dfs[df_name]
 
             # load the db for the given data file into a json format
-            # records = json.loads(df.T.to_json()).values()
             records = df.to_dict('records')
-            # print(records)
+
             # try to update the database with the given data file 
             result = collection.insert_many(records)
             # Update the user on what happened
-            print('A collection called '+data_file[:-4] + ' was added to the database '+ DB_NAME + '.')
+            print('A collection called ' + df_name + ' was added to the database '+ DB_NAME + '.')
 
         else:
-            print('A collection called '+data_file[:-4] + ' already exists in the database '+ DB_NAME + ' and was unmodified.')
+            print('A collection called ' + df_name + ' already exists in the database '+ DB_NAME + ' and was unmodified.')
             
         # Check to see if the aggregated document already exists in the document in the database
-        if conn.collection_existence_check(DB_NAME, 'aggregated_' +data_file[:-4])==False or force_update:
-            collection = conn.get_db_collection(DB_NAME, 'aggregated_' + data_file[:-4])
+        if conn.collection_existence_check(DB_NAME, 'aggregated_' + df_name)==False or force_update:
+            collection = conn.get_db_collection(DB_NAME, 'aggregated_' + df_name)
             # Delete all of the current contents from the collection
             collection.delete_many({})
-            # Reading data into python from the csv
-            df = pd.read_csv('data/'+data_file)
+            # Get the dataframe
+            df = db_dfs[df_name]
+
             # Create the aggregated database 
-            print('Aggregating the ' + data_file + '. This usually takes about a minute.')
+            print('Aggregating the ' + df_name + '. This usually takes about a minute.')
             ag_df = aggregate_data(df)
 
             # load the db for the given data file into a json format
@@ -75,10 +100,10 @@ def update_database(force_update=False):
             ag_result = collection.insert_many(ag_records)
 
             # Update the user on what happened
-            print('A collection called aggregated_'+data_file[:-4] + ' was added to the database '+ DB_NAME + '.')
+            print('A collection called aggregated_'+ df_name + ' was added to the database '+ DB_NAME + '.')
 
         else:
-            print('A collection called aggregated_'+data_file[:-4] + ' already exists in the database '+ DB_NAME + ' and was unmodified.')
+            print('A collection called aggregated_'+ df_name + ' already exists in the database '+ DB_NAME + ' and was unmodified.')
             
     # Return the connection to the collection
     return conn
@@ -86,4 +111,7 @@ def update_database(force_update=False):
 if __name__ == '__main__':
     # Update the database
     update_database()
+
+
+
     

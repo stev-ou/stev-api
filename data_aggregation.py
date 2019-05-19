@@ -68,24 +68,22 @@ def aggregate_data(df):
     ag_df = df.copy()
 
     # Drop the unnecessary columns
-    ag_df.drop(['Department Code', 'Question Number','Section Number','CRN','Campus Code','Question', 'Mean', 'Median', 'Standard Deviation', 'Department Mean', 'Department Median', 'Similar College Mean', 'College Mean', 'College Median', 'Percent Rank - Department', 'Percent Rank - College', 'Percent #1', 'Percent #2', 'Percent #3', 'Percent #4', 'Percent #5', 'ZScore - College', 'ZScore - College Similar Sections', 'Course Level', 'Section Size', 'Similar College Median'], axis=1, inplace = True)
+    ag_df.drop(['Department Code', 'Department Standard Deviation','Question Number','Section Number','CRN','Campus Code','Question', 'Mean', 'Median', 'Standard Deviation', 'Department Mean', 'Department Median', 'Similar College Mean', 'College Mean', 'College Median', 'Percent Rank - Department', 'Percent Rank - College', 'Percent #1', 'Percent #2', 'Percent #3', 'Percent #4', 'Percent #5', 'ZScore - College', 'ZScore - College Similar Sections', 'Course Level', 'Section Size', 'Similar College Median'], axis=1, inplace = True, errors='ignore')
 
     # Add in the columns to be filled with the aggregated values
-    ag_df.insert(3,'Avg Department Rating', 0.0)
-    ag_df.insert(4,'SD Department Rating', 0.0)
-    ag_df.insert(7,'Avg Course Rating', 0.0)
-    ag_df.insert(8,'SD Course Rating', 0.0)
-    ag_df.insert(9,'Course Rank in Department in Semester', 0)
-    ag_df.insert(12, 'Avg Instructor Rating In Section', 0.0)
-    ag_df.insert(13, 'SD Instructor Rating In Section', 0.0)
-    ag_df.insert(15, 'Course Enrollment', 0)
+    # ag_df.insert(3,'Avg Department Rating', 0.0)
+    # ag_df.insert(4,'SD Department Rating', 0.0)
+    # ag_df.insert(7,'Avg Course Rating', 0.0)
+    # ag_df.insert(8,'SD Course Rating', 0.0)
+    # ag_df.insert(9,'Course Rank in Department in Semester', 0)
+    # ag_df.insert(12, 'Avg Instructor Rating In Section', 0.0)
+    # ag_df.insert(13, 'SD Instructor Rating In Section', 0.0)
+    # ag_df.insert(15, 'Course Enrollment', 0)
 
-    # Rename the Instructor 1 ID, Instructor 1 First Name, Last Name columns
-    ag_df.rename(columns = {'Section Title':'Course Title', 'Responses':'Instructor Enrollment','Instructor 1 ID': 'Instructor ID', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, inplace= True)
-
+    # Rename the Instructor 1 First Name, Last Name columns and other necessary columns
+    ag_df.rename(columns = {'Section Title':'Course Title', 'Responses':'Instructor Enrollment', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, inplace= True)
     # Remove the repeat rows that will occur because we are taking 1-10 question responses down to 1
-    ag_df.drop_duplicates(subset = ag_df.columns.drop(['Course Title', 'Instructor Enrollment']), inplace = True)
-
+    ag_df.drop_duplicates(subset = ag_df.columns.drop(['Course Title', 'Instructor Enrollment'], errors='ignore'), inplace = True)
     # Read in the question mappings values from the mappings.yaml
     file_path = __location__+"/mappings.yaml"
 
@@ -93,8 +91,10 @@ def aggregate_data(df):
         # use safe_load instead load
         mappings = yaml.safe_load(f)
         question_weighting = mappings['Instructor_question_weighting']
-
-
+    # qlist = list(df['Question Number'].unique())
+    # qlist.sort()
+    # print(qlist)
+    # return
     # Lets fill the average instructor rating in each section, i.e. the combined rating for each question per section per term
     for term in tqdm(df['Term Code'].unique()):
         subset = df[(df['Term Code']==term)] # Subset the df based on the current term
@@ -102,8 +102,8 @@ def aggregate_data(df):
             subset = df[(df['Term Code']==term) & (df['Subject Code']==subject)] # Subset the df based on the current subject
             for course in subset['Course Number'].unique(): # Iterate over courses with the desired subject 
                 subset = df[(df['Term Code']==term) & (df['Subject Code']==subject) & (df['Course Number']==course)]# Subset the df based on the current course
-                for instructor in subset['Instructor 1 ID'].unique(): # Iterate over instructors with desired subject and course number
-                    subset = df[(df['Term Code']==term) & (df['Subject Code']==subject) & (df['Course Number']==course) & (df['Instructor 1 ID']==instructor)] # Modify the subset based on the current instructor 
+                for instructor in subset['Instructor ID'].unique(): # Iterate over instructors with desired subject and course number
+                    subset = df[(df['Term Code']==term) & (df['Subject Code']==subject) & (df['Course Number']==course) & (df['Instructor ID']==instructor)] # Modify the subset based on the current instructor 
                     if len(subset)!=0: 
                         # Set the combined mean and combined sd value into the aggregated dataframe
                         # Find the row of interest in the aggregated df
@@ -184,8 +184,8 @@ def aggregate_data(df):
             # Fill in the rankings within the department
             ag_df.loc[((ag_df['Subject Code']==subject) & (ag_df['Term Code']==term)),'Course Rank in Department in Semester'] = ag_df.loc[((ag_df['Subject Code']==subject) & (ag_df['Term Code']==term)), :]['Avg Course Rating'].rank( method ='dense',na_option='top', ascending=False)
 
-    # Add in a Queryable Course String for the search by course
-    ag_df['Queryable Course String'] = ag_df['Subject Code'].map(str).str.lower() + ' ' + ag_df['Course Number'].map(str).str.lower() + ' ' + ag_df['Course Title'].map(str).str.lower()
+    # # Add in a Queryable Course String for the search by course
+    # ag_df['Queryable Course String'] = ag_df['Subject Code'].map(str).str.lower() + ' ' + ag_df['Course Number'].map(str).str.lower() + ' ' + ag_df['Course Title'].map(str).str.lower()
 
     # Add in a uuid field for the course, based on subject code (lowercase) and course number
     ag_df['course_uuid'] = ag_df['Subject Code'].map(str).str.lower() + ag_df['Course Number'].map(str)# .str.lower()
