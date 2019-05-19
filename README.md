@@ -1,14 +1,11 @@
 # Backend Repo
-[![Build Status](https://travis-ci.com/stev-ou/stev-api.svg?branch=master)](https://travis-ci.com/stev-ou/stev-api)  
-Website is available [here](http://35.193.175.5).  
+[![Build
+Status](https://travis-ci.com/stev-ou/stev-api.svg?branch=master)](https://travis-ci.com/stev-ou/stev-api)  
 
-Api backend is available here [here](http://35.188.130.122/api/v0).  
-
+## Overview
 Included functionality:
 - Flask server deployed with Gunicorn
-- MongoDB database (running on MongoDB atlas)
-- Tests
-- Soon to include Redis caching
+- MongoDB database connection (running on MongoDB atlas)
 
 ## Building 
 
