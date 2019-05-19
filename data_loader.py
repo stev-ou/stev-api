@@ -37,6 +37,8 @@ def update_database(force_update=False):
     for data_file in data_files:
         # If the collection doesnt exist or if the update is forced
         if conn.collection_existence_check(DB_NAME, data_file[:-4])==False or force_update:
+            print('Currently adding the ' + data_file[:-4]+'.csv file')
+
             collection = conn.get_db_collection(DB_NAME,data_file[:-4] )
 
             # Delete all of the current contents from the collection

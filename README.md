@@ -32,7 +32,7 @@ To run debug server locally:
 $ make debug
 ```
 
-## Running Tests (including linting)
+## Running Tests (includes linting)
 ```bash
 $ make test
 ```
