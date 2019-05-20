@@ -43,7 +43,7 @@ def update_database(force_update=False):
             # Reading data into python from the csv
             df = pd.read_csv('data/'+file)
             # Hash the Instructor ID value 
-            df['Instructor ID'] = df['Instructor 1 ID'].apply(hash)
+            df['Instructor ID'] = df['Instructor 1 ID'].apply(str).apply(hash)
             # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
             df['Instructor 1 First Name'] = df['Instructor 1 First Name'].apply(str.title)
             df['Instructor 1 Last Name'] = df['Instructor 1 Last Name'].apply(str.title)
@@ -65,7 +65,7 @@ def update_database(force_update=False):
         # TEMPORARY WORKAROUND until Joe gets the number of responses scraped
         df['Responses'] = 10
         #####################
-        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(hash)
+        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash)
         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
         df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
         df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
@@ -77,7 +77,6 @@ def update_database(force_update=False):
         # print('\n')
         
         db_dfs[ocr_coll] = df # Create a df and add it to the dict
-
     for df_name in db_dfs.keys():
         print('Loading '+df_name)
         # If the collection doesnt exist or if the update is forced
