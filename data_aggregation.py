@@ -80,8 +80,8 @@ def aggregate_data(df):
     ag_df.insert(13, 'SD Instructor Rating In Section', 0.0)
     ag_df.insert(15, 'Course Enrollment', 0)
 
-    # Rename the Instructor 1 First Name, Last Name columns and other necessary columns
-    ag_df.rename(columns = {'Section Title':'Course Title', 'Responses':'Instructor Enrollment', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, inplace= True)
+    # Rename the necessary columns
+    ag_df.rename(columns = {'Section Title':'Course Title', 'Responses':'Instructor Enrollment'}, inplace= True)
     # Remove the repeat rows that will occur because we are taking 1-10 question responses down to 1
     ag_df.drop_duplicates(subset = ag_df.columns.drop(['Course Title', 'Instructor Enrollment'], errors='ignore'), inplace = True)
     # Read in the question mappings values from the mappings.yaml
@@ -221,6 +221,8 @@ def aggregate_data(df):
 if __name__ == '__main__':
     
     df = pd.read_csv("data/GCOE.csv") # Modify to correct data location
+    df.rename({'Instructor 1 ID':'Instructor ID', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, axis=1, inplace=True)
+
     
     ag_df = aggregate_data(df)
     # Tests the dataframe department ranking

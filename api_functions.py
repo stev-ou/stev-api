@@ -15,7 +15,8 @@ DB_NAME = "reviews-db"
 
 # This is the set of that will be queried by the API
 # The order is important, collections are searched in this order
-COLLECTION_NAMES = ["aggregated_"+ name for name in ['GCOE','JRCOE' 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']]
+COLLECTION_NAMES = ['GCOE','JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+AGG_COLLECTION_NAMES = ["aggregated_"+ name for name in COLLECTION_NAMES]
 
 # This is the period that will be considered "current" by the API. 
 # These are term codes, where the first 4 digits corresponds to year, last 2 digits to semester (10:fall, 20:spring, 30:summer), 
@@ -54,7 +55,7 @@ def sort_by_term_code(semester_int_list):
 
 
 # Get the collection of interest from the db, based on a filter and potentially a known collection
-def query_df_from_mongo(db,coll_filter, collections = COLLECTION_NAMES):
+def query_df_from_mongo(db,coll_filter, collections = AGG_COLLECTION_NAMES):
     """
     This function will use a coll_filter, AKA a cursor, to query the collections in COLLECTION_NAMES and will then return 
     the db and the coll_name where the filter was found.
@@ -80,9 +81,9 @@ def query_df_from_mongo(db,coll_filter, collections = COLLECTION_NAMES):
 
     # Add an error catching if the len(df) == 0
     if population==0:
-        print('The below filter was not found within any of the mongo collections in COLLECTION_NAMES')
+        print('The below filter was not found within any of the mongo collection.')
         pprint.pprint(coll_filter)
-        raise Exception('The filter was not found in the mongo collections in COLLECTION_NAMES')
+        raise Exception('The filter was not found in the mongo collection.')
 
     return df, coll_name
 
@@ -333,7 +334,7 @@ def CourseFig4TableBar(db, valid_uuid):
 
     # Now we need to drop the duplicates and only take columns of interest
     df = df.drop_duplicates(['Term Code', 'Instructor ID'])[['Term Code','Instructor ID','Subject Code', 'Course Number', 'Course Title']]
-    df = df.rename(columns = {'Instructor ID':'Instructor 1 ID', 'Course Title':'Section Title'})
+    df = df.rename(columns = {'Instructor ID':'Instructor ID', 'Course Title':'Section Title'})
 
     # Build a cursor to search the full db collection for these conditions
     # Build it based on each row in the df
@@ -342,7 +343,7 @@ def CourseFig4TableBar(db, valid_uuid):
         # Create the row filter
         row_filter = {'$and':[]}
         for col in list(df.columns):
-            if col in ['Instructor 1 ID','Term Code','Course Number']:
+            if col in ['Instructor ID','Term Code','Course Number']:
                 row_filter['$and'].append({col : int(df.iloc[i][col])}) # Encode the query as utf-8
             else:
                 row_filter['$and'].append({col : str(df.iloc[i][col])}) # Encode the query as utf-8
@@ -354,13 +355,13 @@ def CourseFig4TableBar(db, valid_uuid):
     full_db_coll_name = coll_name[11:] # This takes 'aggregated_GCOE' => GCOE
 
     # Use the database query to pull needed data
-    df, coll_name = query_df_from_mongo(db, full_db_filter, collections=[full_db_coll_name])
+    df, coll_name = query_df_from_mongo(db, full_db_filter, collections=COLLECTION_NAMES)
 
     # Get the list of unique instructors
-    instr_ids= list(df['Instructor 1 ID'].unique())
+    instr_ids= list(df['Instructor ID'].unique())
     instrs = []
     for i in instr_ids:
-        instrs.append(df[(df['Instructor 1 ID']==i)].iloc[0]['Instructor 1 First Name'] + ' ' + df[(df['Instructor 1 ID'] == i)].iloc[0]['Instructor 1 Last Name'])
+        instrs.append(df[(df['Instructor ID']==i)].iloc[0]['Instructor First Name'] + ' ' + df[(df['Instructor ID'] == i)].iloc[0]['Instructor Last Name'])
     response['result']['instructors'] = instrs
 
     # Get the list of unique question
@@ -371,7 +372,7 @@ def CourseFig4TableBar(db, valid_uuid):
         q_ratings = []
         sub_df = df[(df['Question']==q)]
         for iD in instr_ids:
-            sub_sub_df = sub_df[(sub_df['Instructor 1 ID']==iD)]
+            sub_sub_df = sub_df[(sub_df['Instructor ID']==iD)]
             if len(sub_sub_df)==0:
                 q_ratings.append(0)
             else:
@@ -596,10 +597,10 @@ def InstructorFig3TableBar(db, instructor_id):
 
     # filter that we use on the collection
     coll_filter = {'$and':[
-            {"Instructor 1 ID":instructor_id},
+            {"Instructor ID":instructor_id},
             {"Term Code": {'$in': CURRENT_SEMESTERS}}]}
 
-    df, coll_name = query_df_from_mongo(db, coll_filter, collections=["GCOE", "JRCOE"])
+    df, coll_name = query_df_from_mongo(db, coll_filter, collections=COLLECTION_NAMES)
 
     # total rating and count to be used for avg_rating
     total_rating = 0
@@ -635,7 +636,7 @@ def InstructorFig3TableBar(db, instructor_id):
                 rating = 'none'
             ret_json['result']['questions'][j]['ratings'].append(rating)
 
-    ret_json['result']['instructor name'] = df['Instructor 1 First Name'][0]+' '+ df['Instructor 1 Last Name'][0]
+    ret_json['result']['instructor name'] = df['Instructor First Name'][0]+' '+ df['Instructor Last Name'][0]
 
     return ret_json
 
@@ -667,7 +668,7 @@ def SearchAutocomplete(db, search_type='course'):
     coll_filter = {"Term Code": {'$in': CURRENT_SEMESTERS}}
     
     df = pd.DataFrame()
-    for coll_name in COLLECTION_NAMES:
+    for coll_name in AGG_COLLECTION_NAMES:
         coll = db.get_db_collection('reviews-db', coll_name)
         # Use the database query to pull needed data
         cursor = coll.find(coll_filter)
@@ -677,7 +678,7 @@ def SearchAutocomplete(db, search_type='course'):
         if population > 0:
             df_coll = pd.DataFrame(list(cursor))
             df_coll.drop_duplicates(search_key, inplace=True)
-            df = pd.concat([df, df_coll], ignore_index=True)
+            df = pd.concat([df, df_coll], ignore_index=True, sort=True)
     df.drop_duplicates(search_key, inplace=True)
 
     # Now, we just need to convert the dataframe to a dictionary with needed form for search autocomplete
@@ -698,8 +699,10 @@ if __name__ == '__main__':
 
     # uuid_df, coll_name = query_df_from_mongo(mongo_driver(),cursor)
     # pprint.pprint(CourseFig1Table(mongo_driver(), 'engr2002'))
-    pprint.pprint(InstructorFig1Table(mongo_driver(), 112131147))
-    # pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 112131147))
+    # pprint.pprint(CourseFig4TableBar(mongo_driver(), 'edss3553'))
+    pprint.pprint(InstructorFig1Table(mongo_driver(), 1124723821))
+    pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 1124723821))
+    pprint.pprint(InstructorFig3TableBar(mongo_driver(), 1124723821))
     # pprint.pprint(InstructorFig3TableBar(mongo_driver(), 112131147))
     # print(SearchAutocomplete(mongo_driver(), 'instructor'))
 

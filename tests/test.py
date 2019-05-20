@@ -48,23 +48,6 @@ class basictest(unittest.TestCase):
         # * Note that my formula uses n instead of n-1 for combining SDs, so expect some small differences in the final result
         return self.assertEqual(True, status)
 
-    # # Test the dataframe aggregation for unique entries 
-    def test_dataframe_aggregation(self):
-
-        '''
-        This unit test will examine the aggregated dataframe and ensure it has no course entry repeats with the same 
-        course title and instructor.
-        '''
-        # Test the data aggregation for unique entries
-        df = pd.read_csv('data/GCOE.csv')
-
-        ag_df = data_aggregation.aggregate_data(df)
-
-        # There should be no entries with the same course name, Instructor ID, and Term Code, so the below should be false
-        num_repeats = len(ag_df[ag_df[['course_uuid', 'Term Code','Instructor ID']].duplicated() == True])
-
-        return self.assertEqual(0, num_repeats)
-
     # Test the current course apis to make sure that they are at least returning a valid json
     def test_course_api_endings(self):
         '''
@@ -73,7 +56,7 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
-        course_test_list = ['engr1411', 'ame3143', 'bme3233', 'ece5213', 'edss3553', 'edah5023', 'edel4980']
+        course_test_list = ['cns1112', 'mis5602', 'bme3233', 'ece5213', 'edss3553', 'edah5023', 'edel4980']
         # Create connection to the db
         db = mongo.mongo_driver()
         print('Testing the api functions for the following courses: ')
@@ -97,14 +80,16 @@ class basictest(unittest.TestCase):
         return self.assertEqual(True, True)
 
     # Test the current instructor apis to make sure that they are at least returning a valid json
-    def test_instructor_api_endings(self):
+    def test_ainstructor_api_endings(self):
         '''
         This unit test will ping each of the currently created api endings with a variety of different instructors to make sure they hit.
 
         '''
         # Define the currently working courses
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar] 
-        instructor_test_list = [hash(iid) for iid in [113007898, 112131147, 113316966, 112114393, 112111442, 113841484, 113320095]]
+        # I have one instructor per collection
+        instructor_test_list = [1316172559, 1103038208,-5118042401311522516,-484702119397545348, \
+        2406302227209159155, -7053165366943496107, -3906886942614760552, 6752788476108906774, -618344690049791633, -3085274505977062523]
 
         # Create connection to the db
         db = mongo.mongo_driver()
@@ -128,6 +113,24 @@ class basictest(unittest.TestCase):
 
         return self.assertEqual(True, True)
 
+    # # Test the dataframe aggregation for unique entries 
+    def test_zdataframe_aggregation(self):
+
+        '''
+        This unit test will examine the aggregated dataframe and ensure it has no course entry repeats with the same 
+        course title and instructor.
+        '''
+        # Test the data aggregation for unique entries
+        df = pd.read_csv('data/GCOE.csv')
+        df.rename({'Instructor 1 ID':'Instructor ID', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, axis=1, inplace=True)
+
+        ag_df = data_aggregation.aggregate_data(df)
+
+        # There should be no entries with the same course name, Instructor ID, and Term Code, so the below should be false
+        num_repeats = len(ag_df[ag_df[['course_uuid', 'Term Code','Instructor ID']].duplicated() == True])
+
+        return self.assertEqual(0, num_repeats)
+
 if __name__ == '__main__':
-    test_current_api_endings()
-    # unittest.main()
+    # test_current_api_endings()
+    unittest.main()
