@@ -44,6 +44,12 @@ def update_database(force_update=False):
             df = pd.read_csv('data/'+file)
             # Hash the Instructor ID value 
             df['Instructor ID'] = df['Instructor 1 ID'].apply(hash)
+            ## Undo the below lines to get a list of the unique question numbers for OCR
+            # print(file)
+            # mylist = df['Question Number'].unique()
+            # mylist.sort()
+            # print(mylist)
+            # print('\n')
             # Add to dfs to be inserted into db
             db_dfs[file[:-4]] = df
 
@@ -52,15 +58,18 @@ def update_database(force_update=False):
         print('Converting the scraped collection '+ocr_coll+ ' to pd dataframe.')
         ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
         df = pd.DataFrame(list(ocr_db.find()))
-        # TEMPORARY WORKAROUND
+        df.drop(['_id'],axis=1, inplace=True)
+        # TEMPORARY WORKAROUND until Joe gets the number of responses scraped
         df['Responses'] = 10
+        #####################
         df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(hash)
+        ## Undo the below lines to get a list of the unique question numbers for OCR
         # print(ocr_coll)
         # mylist = df['Question Number'].unique()
         # mylist.sort()
         # print(mylist)
-        # print('\n\n')
-        df.drop(['_id'],axis=1, inplace=True)
+        # print('\n')
+        
         db_dfs[ocr_coll] = df # Create a df and add it to the dict
 
     for df_name in db_dfs.keys():

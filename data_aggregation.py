@@ -71,14 +71,14 @@ def aggregate_data(df):
     ag_df.drop(['Department Code', 'Department Standard Deviation','Question Number','Section Number','CRN','Campus Code','Question', 'Mean', 'Median', 'Standard Deviation', 'Department Mean', 'Department Median', 'Similar College Mean', 'College Mean', 'College Median', 'Percent Rank - Department', 'Percent Rank - College', 'Percent #1', 'Percent #2', 'Percent #3', 'Percent #4', 'Percent #5', 'ZScore - College', 'ZScore - College Similar Sections', 'Course Level', 'Section Size', 'Similar College Median'], axis=1, inplace = True, errors='ignore')
 
     # Add in the columns to be filled with the aggregated values
-    # ag_df.insert(3,'Avg Department Rating', 0.0)
-    # ag_df.insert(4,'SD Department Rating', 0.0)
-    # ag_df.insert(7,'Avg Course Rating', 0.0)
-    # ag_df.insert(8,'SD Course Rating', 0.0)
-    # ag_df.insert(9,'Course Rank in Department in Semester', 0)
-    # ag_df.insert(12, 'Avg Instructor Rating In Section', 0.0)
-    # ag_df.insert(13, 'SD Instructor Rating In Section', 0.0)
-    # ag_df.insert(15, 'Course Enrollment', 0)
+    ag_df.insert(3,'Avg Department Rating', 0.0)
+    ag_df.insert(4,'SD Department Rating', 0.0)
+    ag_df.insert(7,'Avg Course Rating', 0.0)
+    ag_df.insert(8,'SD Course Rating', 0.0)
+    ag_df.insert(9,'Course Rank in Department in Semester', 0)
+    ag_df.insert(12, 'Avg Instructor Rating In Section', 0.0)
+    ag_df.insert(13, 'SD Instructor Rating In Section', 0.0)
+    ag_df.insert(15, 'Course Enrollment', 0)
 
     # Rename the Instructor 1 First Name, Last Name columns and other necessary columns
     ag_df.rename(columns = {'Section Title':'Course Title', 'Responses':'Instructor Enrollment', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, inplace= True)
@@ -91,11 +91,7 @@ def aggregate_data(df):
         # use safe_load instead load
         mappings = yaml.safe_load(f)
         question_weighting = mappings['Instructor_question_weighting']
-    # qlist = list(df['Question Number'].unique())
-    # qlist.sort()
-    # print(qlist)
-    # return
-    # print(df.columns)
+
     # Lets fill the average instructor rating in each section, i.e. the combined rating for each question per section per term
     dropped_entries = 0
     ag_dropped_entries = 0
@@ -179,7 +175,7 @@ def aggregate_data(df):
                     ag_df.at[ag_df_course_rows, 'SD Course Rating'] = course_sd
                     ag_df.at[ag_df_course_rows, 'Course Enrollment'] = np.sum(np.array(subset['Instructor Enrollment']))
                 else:
-                    print('Error: forced to eliminate the course with subject: '+ str(subject)+ ', and number: '+ str(course)+' in term'+ str(term))
+                    print('Error: forced to eliminate the course with subject/department: '+ str(subject)+ ', and number: '+ str(course)+' in term'+ str(term))
             # Back to Department level of tree, now that we've filled out the instructor and course level info
             # Modify the dataframe subset that consists only of the entries with the desired subject(see course index above)
             # Find the row of interest in the desired df
@@ -196,9 +192,9 @@ def aggregate_data(df):
                 if math.isnan(department_mean) or math.isnan(department_sd):
                     print('Nan for department mean')
                     print('\n')
-                    print(subset['SD Instructor Rating In Section'])
-                    print(subset['Avg Instructor Rating In Section'])
-                    print(subset['Instructor Enrollment'])
+                    print(subset['SD Course Rating'])
+                    print(subset['Avg Course Rating'])
+                    print(subset['Course Enrollment'])
                     print('Nan within (number entries = ' + str(len(subset))+ ') for term' + str(term)+ ', subject/department: '+ str(subject))
                     print(subset)
                     return 1
@@ -219,7 +215,7 @@ def aggregate_data(df):
     # Convert rankings to int
     ag_df['Course Rank in Department in Semester'] = ag_df['Course Rank in Department in Semester'].astype(int)
     print(str(dropped_entries)+ ' entries were dropped from main dataset, corresponding to '+str(ag_dropped_entries)+' dropped from the aggregated dataframe.')
-    print('\n\n')
+    print('\n')
     return ag_df
 
 if __name__ == '__main__':

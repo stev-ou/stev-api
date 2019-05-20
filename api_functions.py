@@ -14,7 +14,8 @@ import numpy as np
 DB_NAME = "reviews-db"
 
 # This is the set of that will be queried by the API
-COLLECTION_NAMES = ["aggregated_GCOE", "aggregated_JRCOE"]
+# The order is important, collections are searched in this order
+COLLECTION_NAMES = ["aggregated_"+ name for name in ['GCOE','JRCOE' 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']]
 
 # This is the period that will be considered "current" by the API. 
 # These are term codes, where the first 4 digits corresponds to year, last 2 digits to semester (10:fall, 20:spring, 30:summer), 
@@ -33,11 +34,9 @@ with open(file_path) as f:
     SEMESTER_MAPPINGS = mappings['Term_code_dict']
 
 # Sort by term code
-
 def sort_by_term_code(semester_int_list):
     """
     Input a list of term codes, it will sort the term code list and return the same list sorted in order of term.
-
     """
     year_list = [int(str(i)[0:4]) for i in semester_int_list]
     year_list.sort(reverse=True)
