@@ -44,6 +44,9 @@ def update_database(force_update=False):
             df = pd.read_csv('data/'+file)
             # Hash the Instructor ID value 
             df['Instructor ID'] = df['Instructor 1 ID'].apply(hash)
+            # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
+            df['Instructor 1 First Name'] = df['Instructor 1 First Name'].apply(str.title)
+            df['Instructor 1 Last Name'] = df['Instructor 1 Last Name'].apply(str.title)
             ## Undo the below lines to get a list of the unique question numbers for OCR
             # print(file)
             # mylist = df['Question Number'].unique()
@@ -63,6 +66,9 @@ def update_database(force_update=False):
         df['Responses'] = 10
         #####################
         df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(hash)
+        # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
+        df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
+        df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
         ## Undo the below lines to get a list of the unique question numbers for OCR
         # print(ocr_coll)
         # mylist = df['Question Number'].unique()
