@@ -104,7 +104,7 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar] 
-        instructor_test_list = [113007898, 112131147, 113316966, 112114393, 112111442, 113841484, 113320095]
+        instructor_test_list = [hash(iid) for iid in [113007898, 112131147, 113316966, 112114393, 112111442, 113841484, 113320095]]
 
         # Create connection to the db
         db = mongo.mongo_driver()
