@@ -700,11 +700,16 @@ if __name__ == '__main__':
     # uuid_df, coll_name = query_df_from_mongo(mongo_driver(),cursor)
     # pprint.pprint(CourseFig1Table(mongo_driver(), 'engr2002'))
     # pprint.pprint(CourseFig4TableBar(mongo_driver(), 'edss3553'))
-    pprint.pprint(InstructorFig1Table(mongo_driver(), 1124723821))
-    pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 1124723821))
-    pprint.pprint(InstructorFig3TableBar(mongo_driver(), 1124723821))
+    # pprint.pprint(InstructorFig1Table(mongo_driver(), 1124723821))
+    # pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 1124723821))
+    # pprint.pprint(InstructorFig3TableBar(mongo_driver(), 1124723821))
     # pprint.pprint(InstructorFig3TableBar(mongo_driver(), 112131147))
-    # print(SearchAutocomplete(mongo_driver(), 'instructor'))
+    response = SearchAutocomplete(mongo_driver(), 'course')
+    res_dict = json.loads(json.dumps(response))
+    id_list = [el['value'] for el in res_dict]
+    import random
+    choices = random.choices(id_list, k=8)
+    print(choices)
 
 
 

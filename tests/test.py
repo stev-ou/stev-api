@@ -3,6 +3,7 @@ import mongo
 import json
 import data_aggregation
 import pandas as pd
+import random
 from api_functions import *
 
 class basictest(unittest.TestCase):
@@ -60,7 +61,19 @@ class basictest(unittest.TestCase):
         # Create connection to the db
         db = mongo.mongo_driver()
         print('Testing the api functions for the following courses: ')
-        for course in course_test_list:
+
+        # Try the function for autocomplete for all courses
+        try:
+            print('SearchAutocomplete for all courses')
+            response = SearchAutocomplete(db, search_type='course')
+            response_dict = json.loads(json.dumps(response))
+            id_list = [el['value'] for el in response_dict]
+            test_id_list = random.choices(id_list, k=8)
+
+        except:
+            return self.assertEqual(True, False)
+
+        for course in test_id_list:
             print(course)
             for func in course_function_list:
                 try:
@@ -69,32 +82,35 @@ class basictest(unittest.TestCase):
                 except:
                     return self.assertEqual(True, False)
 
-        # Try the function for autocomplete for all courses
-        try:
-            print('SearchAutocomplete for all courses')
-            response = SearchAutocomplete(db, search_type='course')
-            json.loads(json.dumps(response))
-        except:
-            return self.assertEqual(True, False)
-
         return self.assertEqual(True, True)
 
     # Test the current instructor apis to make sure that they are at least returning a valid json
-    def test_ainstructor_api_endings(self):
+    def test_instructor_api_endings(self):
         '''
         This unit test will ping each of the currently created api endings with a variety of different instructors to make sure they hit.
 
         '''
         # Define the currently working courses
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar] 
-        # I have one instructor per collection
-        instructor_test_list = [1316172559, 1103038208,-5118042401311522516,-484702119397545348, \
-        2406302227209159155, -7053165366943496107, -3906886942614760552, 6752788476108906774, -618344690049791633, -3085274505977062523]
-
         # Create connection to the db
         db = mongo.mongo_driver()
+        # # Try the function for autocomplete for all instructors
+        # response = SearchAutocomplete(db, search_type='instructor')
+        # print(response)
+        # response_dict = json.loads(json.dumps(response))
+        # id_list = [el['value'] for el in response_dict]
+        try:
+            print('SearchAutocomplete for all instructors')
+            response = SearchAutocomplete(db, search_type='instructor')
+            response_dict = json.loads(json.dumps(response))
+            id_list = [el['value'] for el in response_dict]
+            # Get random entries from the dataset to test
+            test_id_list = random.choices(id_list, k=8)
+        except:
+            return self.assertEqual(True, False)
+
         print('Testing the api functions for the following instructors: ')
-        for instr in instructor_test_list:
+        for instr in test_id_list:
             print(instr)
             for func in instructor_function_list:
                 try:
@@ -103,18 +119,10 @@ class basictest(unittest.TestCase):
                 except:
                     return self.assertEqual(True, False)
 
-        # Try the function for autocomplete for all instructors
-        try:
-            print('SearchAutocomplete for all instructors')
-            response = SearchAutocomplete(db, search_type='instructor')
-            json.loads(json.dumps(response))
-        except:
-            return self.assertEqual(True, False)
-
         return self.assertEqual(True, True)
 
     # # Test the dataframe aggregation for unique entries 
-    def test_zdataframe_aggregation(self):
+    def test_dataframe_aggregation(self):
 
         '''
         This unit test will examine the aggregated dataframe and ensure it has no course entry repeats with the same 
