@@ -94,11 +94,6 @@ class basictest(unittest.TestCase):
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar] 
         # Create connection to the db
         db = mongo.mongo_driver()
-        # # Try the function for autocomplete for all instructors
-        # response = SearchAutocomplete(db, search_type='instructor')
-        # print(response)
-        # response_dict = json.loads(json.dumps(response))
-        # id_list = [el['value'] for el in response_dict]
         try:
             print('SearchAutocomplete for all instructors')
             response = SearchAutocomplete(db, search_type='instructor')
