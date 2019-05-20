@@ -3,7 +3,6 @@ import mongo
 import json
 import data_aggregation
 import pandas as pd
-import random
 from api_functions import *
 
 class basictest(unittest.TestCase):
@@ -57,6 +56,8 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
+        test_id_list = ['pe3223', 'engr2002', 'ahi5993', 'hist3863', 'ltrs3813', 'span5970', 'lat2113', \
+        'eds6793', 'jmc4633', 'munm2313']
         # Create connection to the db
         db = mongo.mongo_driver()
 
@@ -65,8 +66,6 @@ class basictest(unittest.TestCase):
             print('SearchAutocomplete for all courses')
             response = SearchAutocomplete(db, search_type='course')
             response_dict = json.loads(json.dumps(response))
-            id_list = [el['value'] for el in response_dict]
-            test_id_list = random.choices(id_list, k=8)
 
         except:
             return self.assertEqual(True, False)
@@ -89,16 +88,15 @@ class basictest(unittest.TestCase):
 
         '''
         # Define the currently working courses
-        instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar] 
+        instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
+        test_id_list = [-645207126, -2123263617, -1463601543, 876082637, -1089021050, -376850478, 317860867, \
+        -1165234543, -525578718, 1640471628]
         # Create connection to the db
         db = mongo.mongo_driver()
         try:
             print('SearchAutocomplete for all instructors')
             response = SearchAutocomplete(db, search_type='instructor')
             response_dict = json.loads(json.dumps(response))
-            id_list = [el['value'] for el in response_dict]
-            # Get random entries from the dataset to test
-            test_id_list = random.choices(id_list, k=8)
         except:
             return self.assertEqual(True, False)
 
