@@ -11,6 +11,7 @@ import yaml
 import os
 import math
 from tqdm import tqdm
+import datetime
 
 # Get file location for mappings.yaml and reading data
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -91,6 +92,10 @@ def aggregate_data(df):
         # use safe_load instead load
         mappings = yaml.safe_load(f)
         question_weighting = mappings['Instructor_question_weighting']
+
+    ## Drop terms that are more than 5 years old
+    #current_year = datetime.datetime.now().year
+    #df = df[(df['Term Code'] > (current_year-4)*100)] # This works because Term codes begin with the year in question, so this drops everything before CY-4
 
     # Lets fill the average instructor rating in each section, i.e. the combined rating for each question per section per term
     dropped_entries = 0
@@ -222,7 +227,6 @@ if __name__ == '__main__':
     
     df = pd.read_csv("data/GCOE.csv") # Modify to correct data location
     df.rename({'Instructor 1 ID':'Instructor ID', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, axis=1, inplace=True)
-
     
     ag_df = aggregate_data(df)
     # Tests the dataframe department ranking
