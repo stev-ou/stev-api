@@ -48,23 +48,6 @@ class basictest(unittest.TestCase):
         # * Note that my formula uses n instead of n-1 for combining SDs, so expect some small differences in the final result
         return self.assertEqual(True, status)
 
-    # # Test the dataframe aggregation for unique entries 
-    def test_dataframe_aggregation(self):
-
-        '''
-        This unit test will examine the aggregated dataframe and ensure it has no course entry repeats with the same 
-        course title and instructor.
-        '''
-        # Test the data aggregation for unique entries
-        df = pd.read_csv('data/GCOE.csv')
-
-        ag_df = data_aggregation.aggregate_data(df)
-
-        # There should be no entries with the same course name, Instructor ID, and Term Code, so the below should be false
-        num_repeats = len(ag_df[ag_df[['course_uuid', 'Term Code','Instructor ID']].duplicated() == True])
-
-        return self.assertEqual(0, num_repeats)
-
     # Test the current course apis to make sure that they are at least returning a valid json
     def test_course_api_endings(self):
         '''
@@ -73,11 +56,21 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
-        course_test_list = ['engr1411', 'ame3143', 'bme3233', 'ece5213', 'edss3553', 'edah5023', 'edel4980']
+        test_id_list = ['pe3223', 'engr2002', 'ahi5993', 'hist3863', 'ltrs3813', 'span5970', 'lat2113', \
+        'eds6793', 'jmc4633', 'munm2313']
         # Create connection to the db
         db = mongo.mongo_driver()
-        print('Testing the api functions for the following courses: ')
-        for course in course_test_list:
+
+        # Try the function for autocomplete for all courses
+        try:
+            print('SearchAutocomplete for all courses')
+            response = SearchAutocomplete(db, search_type='course')
+            response_dict = json.loads(json.dumps(response))
+
+        except:
+            return self.assertEqual(True, False)
+
+        for course in test_id_list:
             print(course)
             for func in course_function_list:
                 try:
@@ -85,14 +78,6 @@ class basictest(unittest.TestCase):
                     json.loads(json.dumps(response))
                 except:
                     return self.assertEqual(True, False)
-
-        # Try the function for autocomplete for all courses
-        try:
-            print('SearchAutocomplete for all courses')
-            response = SearchAutocomplete(db, search_type='course')
-            json.loads(json.dumps(response))
-        except:
-            return self.assertEqual(True, False)
 
         return self.assertEqual(True, True)
 
@@ -103,13 +88,20 @@ class basictest(unittest.TestCase):
 
         '''
         # Define the currently working courses
-        instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar] 
-        instructor_test_list = [113007898, 112131147, 113316966, 112114393, 112111442, 113841484, 113320095]
-
+        instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
+        test_id_list = [-645207126, -2123263617, -1463601543, 876082637, -1089021050, -376850478, 317860867, \
+        -1165234543, -525578718, 1640471628]
         # Create connection to the db
         db = mongo.mongo_driver()
+        try:
+            print('SearchAutocomplete for all instructors')
+            response = SearchAutocomplete(db, search_type='instructor')
+            response_dict = json.loads(json.dumps(response))
+        except:
+            return self.assertEqual(True, False)
+
         print('Testing the api functions for the following instructors: ')
-        for instr in instructor_test_list:
+        for instr in test_id_list:
             print(instr)
             for func in instructor_function_list:
                 try:
@@ -118,16 +110,26 @@ class basictest(unittest.TestCase):
                 except:
                     return self.assertEqual(True, False)
 
-        # Try the function for autocomplete for all instructors
-        try:
-            print('SearchAutocomplete for all instructors')
-            response = SearchAutocomplete(db, search_type='instructor')
-            json.loads(json.dumps(response))
-        except:
-            return self.assertEqual(True, False)
-
         return self.assertEqual(True, True)
 
+    # # Test the dataframe aggregation for unique entries 
+    def test_dataframe_aggregation(self):
+
+        '''
+        This unit test will examine the aggregated dataframe and ensure it has no course entry repeats with the same 
+        course title and instructor.
+        '''
+        # Test the data aggregation for unique entries
+        df = pd.read_csv('data/GCOE.csv')
+        df.rename({'Instructor 1 ID':'Instructor ID', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, axis=1, inplace=True)
+
+        ag_df = data_aggregation.aggregate_data(df)
+
+        # There should be no entries with the same course name, Instructor ID, and Term Code, so the below should be false
+        num_repeats = len(ag_df[ag_df[['course_uuid', 'Term Code','Instructor ID']].duplicated() == True])
+
+        return self.assertEqual(0, num_repeats)
+
 if __name__ == '__main__':
-    test_current_api_endings()
-    # unittest.main()
+    # test_current_api_endings()
+    unittest.main()
