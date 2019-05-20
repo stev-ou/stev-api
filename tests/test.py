@@ -57,10 +57,8 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
-        course_test_list = ['cns1112', 'mis5602', 'bme3233', 'ece5213', 'edss3553', 'edah5023', 'edel4980']
         # Create connection to the db
         db = mongo.mongo_driver()
-        print('Testing the api functions for the following courses: ')
 
         # Try the function for autocomplete for all courses
         try:
