@@ -86,6 +86,7 @@ def update_database(force_update=False):
     for df_name in db_dfs.keys():
         print('Loading '+df_name)
         # If the collection doesnt exist or if the update is forced
+
         if conn.collection_existence_check(DB_NAME, df_name)==False or force_update:
             collection = conn.get_db_collection(DB_NAME, df_name)
 
