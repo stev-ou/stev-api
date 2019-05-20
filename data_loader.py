@@ -9,7 +9,7 @@ from data_aggregation import aggregate_data
 # Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
 DB_NAME = "reviews-db"
 OCR_DB_NAME = 'ocr_db'
-ocr_collections = ['ARC']#['ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+ocr_collections = ['ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 
 ### DEBUG - force_update is always true - off in prod
 def update_database(force_update=False):
@@ -32,20 +32,20 @@ def update_database(force_update=False):
 
     db_dfs = {}
     # TEMPORARY COMMENT OUT
-    # for file in data_files: 
-    #     # Inform about non csv files
-    #     if file[-4:] != '.csv':
-    #         print('The file ' + file + ' is located in the data/ directory, but cannot be uploaded to the DB, because it is not a .csv')
-    #         data_files.remove(file)
-    #     # Convert the relevant .csv data files to df and put into db_df_list
-    #     else:
-    #         print('Converting the file ' + file + ' to pd dataframe.')
-    #         # Reading data into python from the csv
-    #         df = pd.read_csv('data/'+file)
-    #         # Hash the Instructor ID value 
-    #         df['Instructor ID'] = df['Instructor 1 ID'].apply(hash)
-    #         # Add to dfs to be inserted into db
-    #         db_dfs[file[:-4]] = df
+    for file in data_files: 
+        # Inform about non csv files
+        if file[-4:] != '.csv':
+            print('The file ' + file + ' is located in the data/ directory, but cannot be uploaded to the DB, because it is not a .csv')
+            data_files.remove(file)
+        # Convert the relevant .csv data files to df and put into db_df_list
+        else:
+            print('Converting the file ' + file + ' to pd dataframe.')
+            # Reading data into python from the csv
+            df = pd.read_csv('data/'+file)
+            # Hash the Instructor ID value 
+            df['Instructor ID'] = df['Instructor 1 ID'].apply(hash)
+            # Add to dfs to be inserted into db
+            db_dfs[file[:-4]] = df
 
     # Add OCR collections to the db_dfs
     for ocr_coll in ocr_collections:
@@ -54,7 +54,12 @@ def update_database(force_update=False):
         df = pd.DataFrame(list(ocr_db.find()))
         # TEMPORARY WORKAROUND
         df['Responses'] = 10
-        print(df.columns)
+        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(hash)
+        # print(ocr_coll)
+        # mylist = df['Question Number'].unique()
+        # mylist.sort()
+        # print(mylist)
+        # print('\n\n')
         df.drop(['_id'],axis=1, inplace=True)
         db_dfs[ocr_coll] = df # Create a df and add it to the dict
 
@@ -110,7 +115,7 @@ def update_database(force_update=False):
     
 if __name__ == '__main__':
     # Update the database
-    update_database()
+    update_database(force_update=True)
 
 
 
