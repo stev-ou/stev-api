@@ -1,5 +1,10 @@
 all: install test debug
 
+UNAME := $(shell uname)
+#ifeq ($(UNAME), Linux)
+	#sudo apt install pylint -y
+#endif
+
 .PHONY: install
 install:
 	python3 -m venv env
