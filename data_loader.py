@@ -45,7 +45,7 @@ def update_database(force_update=False):
             # Reading data into python from the csv
             df = pd.read_csv('data/'+file)
             # Hash the Instructor ID value 
-            df['Instructor ID'] = df['Instructor 1 ID'].apply(str).apply(hash).astype('int32')
+            df['Instructor ID'] = df['Instructor 1 ID'].apply(str).apply(hash).astype('int32').abs()
             # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
             df['Instructor First Name'] = df['Instructor 1 First Name'].apply(str.title)
             df['Instructor Last Name'] = df['Instructor 1 Last Name'].apply(str.title)
@@ -70,7 +70,7 @@ def update_database(force_update=False):
         df['Responses'] = 10
         df['Question'] = 'QUESTION NAME SPOOF'
         #####################
-        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32')
+        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
         df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
         df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
