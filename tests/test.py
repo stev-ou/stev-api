@@ -89,8 +89,8 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
-        test_id_list = [1551476120, 1086256529, 796005474, 1234042517, 1283932895, 282564741, 317860867, \
-        710069259, 1192836130, 1640471628]
+        test_id_list = [1551476120, 1086256529, 796005474, 1234042517, 1283932895, 282564741, 490534061, \
+        710069259, 1192836130, 58249219]
         # Create connection to the db
         db = mongo.mongo_driver()
         try:
@@ -113,7 +113,7 @@ class basictest(unittest.TestCase):
         return self.assertEqual(True, True)
 
     # # Test the dataframe aggregation for unique entries 
-    def test_dataframe_aggregation(self):
+    def test_zdataframe_aggregation(self): # Z puts it last
 
         '''
         This unit test will examine the aggregated dataframe and ensure it has no course entry repeats with the same 
