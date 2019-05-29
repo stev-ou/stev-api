@@ -64,12 +64,14 @@ def aggregate_data(df):
 
     # Drop rows where the NaN value exists from the dataframe
     df.dropna(inplace=True)
+    # We can't handle zero responses, it doesnt make sense
+    df['Responses'].replace(to_replace=0, value=1, inplace=True)
 
     # Initialize the aggregated dataframe by copying the base data frame
     ag_df = df.copy()
 
     # Drop the unnecessary columns
-    ag_df.drop(['Department Code', 'Department Standard Deviation','Question Number','Section Number','CRN','Campus Code','Question', 'Mean', 'Median', 'Standard Deviation', 'Department Mean', 'Department Median', 'Similar College Mean', 'College Mean', 'College Median', 'Percent Rank - Department', 'Percent Rank - College', 'Percent #1', 'Percent #2', 'Percent #3', 'Percent #4', 'Percent #5', 'ZScore - College', 'ZScore - College Similar Sections', 'Course Level', 'Section Size', 'Similar College Median'], axis=1, inplace = True, errors='ignore')
+    ag_df.drop(['Department Responses', 'Department Code', 'Department Standard Deviation','Question Number','Section Number','CRN','Campus Code','Question', 'Mean', 'Median', 'Standard Deviation', 'Department Mean', 'Department Median', 'Similar College Mean', 'College Mean', 'College Median', 'Percent Rank - Department', 'Percent Rank - College', 'Percent #1', 'Percent #2', 'Percent #3', 'Percent #4', 'Percent #5', 'ZScore - College', 'ZScore - College Similar Sections', 'Course Level', 'Section Size', 'Similar College Median'], axis=1, inplace = True, errors='ignore')
 
     # Add in the columns to be filled with the aggregated values
     ag_df.insert(3,'Avg Department Rating', 0.0)
@@ -84,7 +86,7 @@ def aggregate_data(df):
     # Rename the necessary columns
     ag_df.rename(columns = {'Section Title':'Course Title', 'Responses':'Instructor Enrollment'}, inplace= True)
     # Remove the repeat rows that will occur because we are taking 1-10 question responses down to 1
-    ag_df.drop_duplicates(subset = ag_df.columns.drop(['Course Title', 'Instructor Enrollment'], errors='ignore'), inplace = True)
+    ag_df.drop_duplicates(subset = ag_df.columns.drop(['Course Title', 'Instructor Enrollment', 'Instructor ID'], errors='ignore'), inplace = True)
     # Read in the question mappings values from the mappings.yaml
     file_path = __location__+"/mappings.yaml"
 
