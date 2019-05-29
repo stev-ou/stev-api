@@ -15,14 +15,12 @@ ocr_collections = ['ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 ### DEBUG - force_update is always true - off in prod
 def update_database(force_update=False):
     '''
-    Loads new data into the database, from the data folder. Each new .csv file is inserted into the database as a new collection. When inserting,
-    the only check is to see if a collection with the name of the csv already exists in the database(i.e., if COE_Spring_2018 already exists in 
-    the database, it is not inserted or modified. Else, it is inserted). Therefore, once the .csv files are placed into the data folder, do not 
-    modify their contents, as the updates will not natively make it to the database.
+    Get's the csv data in the "data" directory, and the OCR scraped databases in the Mongo OCR_DB_NAME, and runs aggregations on this data. Ensures that
+    each of these datasets (native, unmodified form and the aggregated form) exist within the DB_NAME Mongo database.
     :inputs:
-    connection: a connection to a collection within the DB
+    force_update: boolean denoting whether an update should be forced if the dataset and its aggregated form already exists in the reviews_db
     :returns:
-    connection: the same connection to the same collection of documents within the DB (the document set of the collection may be modified)
+    connection: a connection to the mongoDB.
     '''
 
     # Establish DB connection
