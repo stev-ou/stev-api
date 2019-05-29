@@ -66,9 +66,7 @@ def update_database(force_update=False):
         ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
         df = pd.DataFrame(list(ocr_db.find()))
         df.drop(['_id'],axis=1, inplace=True)
-        # TEMPORARY WORKAROUND until Joe gets the number of responses scraped
-        df['Responses'] = 10
-        df['Question'] = 'QUESTION NAME SPOOF'
+        df['Responses'] = df['Individual Responses']
         #####################
         df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
