@@ -18,6 +18,7 @@ db = mongo_driver()
 
 app = Flask(__name__)
 CORS(app)
+
 # useful for testing
 # curl -i http://localhost:5050/api/v0/
 
@@ -128,5 +129,5 @@ if __name__ == '__main__':
     # print('IN DEVELOPMENT MODE; NO DATABASE UPDATE PERFORMED')
     update_database(force_update=False)
     print("Done.")
-    print("Starting server...")
-    app.run(host='0.0.0.0', port=80)
+    print("Starting server listening on port 5050...")
+    app.run(host='0.0.0.0', port=5050)
