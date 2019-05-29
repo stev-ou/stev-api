@@ -20,7 +20,7 @@ app = Flask(__name__)
 CORS(app)
 # useful for testing
 # curl -i http://localhost:5050/api/v0/
-# algolia for search utility
+
 @app.route('/')
 def hello_world():
     return 'Ping <a href="/api/v0/">/api/v0/</a> for api'.format(str(request.remote_addr))
