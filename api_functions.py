@@ -178,9 +178,13 @@ def CourseFig1Table(db, uuid):
 
         ret_json["result"]["instructors"].append(inst)
 
-    ret_json['result']['course name'] = str(df['Course Title'][0])
-    ret_json['result']['dept name'] = str(df['Subject Code'][0])
-    ret_json['result']['course number'] = str(df['Course Number'][0])
+    #print("=======================")
+    #print(df)
+
+    # grabs the first row with .iloc[0]
+    ret_json['result']['course name'] = str(df['Course Title'].iloc[0])
+    ret_json['result']['dept name'] = str(df['Subject Code'].iloc[0])
+    ret_json['result']['course number'] = str(df['Course Number'].iloc[0])
                 
     return ret_json
 
