@@ -10,7 +10,7 @@ from data_aggregation import aggregate_data
 # Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
 DB_NAME = "reviews-db" # practice
 OCR_DB_NAME = 'ocr_db'
-ocr_collections = ['INTS','BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+ocr_collections = ['ARC','BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 
 ### DEBUG - force_update is always true - off in prod
 def update_database(force_update=False):
@@ -18,7 +18,7 @@ def update_database(force_update=False):
     Get's the csv data in the "data" directory, and the OCR scraped databases in the Mongo OCR_DB_NAME, and runs aggregations on this data. Ensures that
     each of these datasets (native, unmodified form and the aggregated form) exist within the DB_NAME Mongo database.
     :inputs:
-    force_update: boolean denoting whether an update should be forced if the dataset and its aggregated form already exists in the reviews_db
+    force_update: boolean denoting whether an update should be forced if the dataset and its aggregated form already exists in DB_NAME.
     :returns:
     connection: a connection to the mongo db named DB_NAME.
     '''
@@ -66,7 +66,6 @@ def update_database(force_update=False):
         df = pd.DataFrame(list(ocr_db.find()))
         df.drop(['_id'],axis=1, inplace=True)
         df.rename(columns ={'Individual Responses':'Responses'}, inplace=True)
-        #####################
         df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
         df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
