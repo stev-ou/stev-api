@@ -8,7 +8,7 @@ import hashlib
 from data_aggregation import aggregate_data
 
 # Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
-DB_NAME = "practice" # reviews-db
+DB_NAME = "reviews-db" # practice
 OCR_DB_NAME = 'ocr_db'
 ocr_collections = ['INTS','BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 
@@ -32,6 +32,7 @@ def update_database(force_update=False):
     db_dfs = {}
 
     # Modify the content from the data files to achieve standard column naming form
+    ## If you dont want to update the csv files, comment this for loop out
     for file in data_files: 
         # Inform about non csv files
         if file[-4:] != '.csv':
@@ -115,7 +116,7 @@ def update_database(force_update=False):
             df = db_dfs[df_name]
 
             # Create the aggregated database 
-            print('Aggregating the ' + df_name + '. This usually takes about a minute.')
+            print('Aggregating the ' + df_name + '. This usually takes approximately 1 minute, though can take longer for large datasets.')
             ag_df = aggregate_data(df)
 
             # load the db for the given data file into a json format
