@@ -10,7 +10,7 @@ from data_aggregation import aggregate_data
 # Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
 DB_NAME = "practice" # reviews-db
 OCR_DB_NAME = 'ocr_db'
-ocr_collections = ['INTS']#, 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+ocr_collections = ['INTS','BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 
 ### DEBUG - force_update is always true - off in prod
 def update_database(force_update=False):
@@ -32,31 +32,31 @@ def update_database(force_update=False):
     db_dfs = {}
 
     # Modify the content from the data files to achieve standard column naming form
-    # for file in data_files: 
-    #     # Inform about non csv files
-    #     if file[-4:] != '.csv':
-    #         print('The file ' + file + ' is located in the data/ directory, but cannot be uploaded to the DB, because it is not a .csv')
-    #         data_files.remove(file)
-    #     # Convert the relevant .csv data files to df and put into db_df_list
-    #     else:
-    #         print('Converting the file ' + file + ' to pd dataframe.')
-    #         # Reading data into python from the csv
-    #         df = pd.read_csv('data/'+file)
-    #         # Hash the Instructor ID value 
-    #         df['Instructor ID'] = df['Instructor 1 ID'].apply(str).apply(hash).astype('int32').abs()
-    #         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
-    #         df['Instructor First Name'] = df['Instructor 1 First Name'].apply(str.title)
-    #         df['Instructor Last Name'] = df['Instructor 1 Last Name'].apply(str.title)
-    #         df.drop(['Instructor 1 First Name', 'Instructor 1 Last Name', 'Instructor 1 ID'], axis=1, inplace=True)
+    for file in data_files: 
+        # Inform about non csv files
+        if file[-4:] != '.csv':
+            print('The file ' + file + ' is located in the data/ directory, but cannot be uploaded to the DB, because it is not a .csv')
+            data_files.remove(file)
+        # Convert the relevant .csv data files to df and put into db_df_list
+        else:
+            print('Converting the file ' + file + ' to pd dataframe.')
+            # Reading data into python from the csv
+            df = pd.read_csv('data/'+file)
+            # Hash the Instructor ID value 
+            df['Instructor ID'] = df['Instructor 1 ID'].apply(str).apply(hash).astype('int32').abs()
+            # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
+            df['Instructor First Name'] = df['Instructor 1 First Name'].apply(str.title)
+            df['Instructor Last Name'] = df['Instructor 1 Last Name'].apply(str.title)
+            df.drop(['Instructor 1 First Name', 'Instructor 1 Last Name', 'Instructor 1 ID'], axis=1, inplace=True)
 
-    #         ## Undo the below lines to get a list of the unique question numbers for OCR
-    #         # print(file)
-    #         # mylist = df['Question Number'].unique()
-    #         # mylist.sort()
-    #         # print(mylist)
-    #         # print('\n')
-    #         # Add to dfs to be inserted into db
-    #         db_dfs[file[:-4]] = df
+            ## Undo the below lines to get a list of the unique question numbers for OCR
+            # print(file)
+            # mylist = df['Question Number'].unique()
+            # mylist.sort()
+            # print(mylist)
+            # print('\n')
+            # Add to dfs to be inserted into db
+            db_dfs[file[:-4]] = df
 
     # Modify the ocr collections to achieve standard column naming form
     for ocr_coll in ocr_collections:
