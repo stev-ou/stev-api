@@ -93,7 +93,7 @@ def aggregate_data(df):
     # Rename the necessary columns
     ag_df.rename(columns = {'Section Title':'Course Title', 'Responses':'Instructor Enrollment'}, inplace= True)
     # Remove the repeat rows that will occur because we are taking 1-10 question responses down to 1
-    ag_df.drop_duplicates(subset = ag_df.columns.drop(['Course Title', 'Instructor Enrollment', 'Instructor ID'], errors='ignore'), inplace = True)
+    ag_df.drop_duplicates(subset = ag_df.columns.drop(['Course Title', 'Instructor Enrollment'], errors='ignore'), inplace = True)
     # Read in the question mappings values from the mappings.yaml
     file_path = __location__+"/mappings.yaml"
 
