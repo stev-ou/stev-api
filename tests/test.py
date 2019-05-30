@@ -89,8 +89,8 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
-        test_id_list = [1551476120, 1086256529, 796005474, 1234042517, 1283932895, 282564741, 490534061, \
-        710069259, 1192836130, 58249219]
+        test_id_list = [704184517, 1526026687, 1301025910, 1020330180,
+                        1830690322, 433680882, 2121674585]
         # Create connection to the db
         db = mongo.mongo_driver()
         try:
