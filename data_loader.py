@@ -8,21 +8,19 @@ import hashlib
 from data_aggregation import aggregate_data
 
 # Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
-DB_NAME = "reviews-db"
+DB_NAME = "reviews-db" # practice
 OCR_DB_NAME = 'ocr_db'
-ocr_collections = ['ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+ocr_collections = ['ARC','BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 
 ### DEBUG - force_update is always true - off in prod
 def update_database(force_update=False):
     '''
-    Loads new data into the database, from the data folder. Each new .csv file is inserted into the database as a new collection. When inserting,
-    the only check is to see if a collection with the name of the csv already exists in the database(i.e., if COE_Spring_2018 already exists in 
-    the database, it is not inserted or modified. Else, it is inserted). Therefore, once the .csv files are placed into the data folder, do not 
-    modify their contents, as the updates will not natively make it to the database.
+    Get's the csv data in the "data" directory, and the OCR scraped databases in the Mongo OCR_DB_NAME, and runs aggregations on this data. Ensures that
+    each of these datasets (native, unmodified form and the aggregated form) exist within the DB_NAME Mongo database.
     :inputs:
-    connection: a connection to a collection within the DB
+    force_update: boolean denoting whether an update should be forced if the dataset and its aggregated form already exists in DB_NAME.
     :returns:
-    connection: the same connection to the same collection of documents within the DB (the document set of the collection may be modified)
+    connection: a connection to the mongo db named DB_NAME.
     '''
 
     # Establish DB connection
@@ -34,6 +32,7 @@ def update_database(force_update=False):
     db_dfs = {}
 
     # Modify the content from the data files to achieve standard column naming form
+    ## If you dont want to update the csv files, comment this for loop out
     for file in data_files: 
         # Inform about non csv files
         if file[-4:] != '.csv':
@@ -66,10 +65,7 @@ def update_database(force_update=False):
         ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
         df = pd.DataFrame(list(ocr_db.find()))
         df.drop(['_id'],axis=1, inplace=True)
-        # TEMPORARY WORKAROUND until Joe gets the number of responses scraped
-        df['Responses'] = 10
-        df['Question'] = 'QUESTION NAME SPOOF'
-        #####################
+        df.rename(columns ={'Individual Responses':'Responses'}, inplace=True)
         df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
         df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
@@ -119,7 +115,7 @@ def update_database(force_update=False):
             df = db_dfs[df_name]
 
             # Create the aggregated database 
-            print('Aggregating the ' + df_name + '. This usually takes about a minute.')
+            print('Aggregating the ' + df_name + '. This usually takes approximately 1 minute, though can take longer for large datasets.')
             ag_df = aggregate_data(df)
 
             # load the db for the given data file into a json format

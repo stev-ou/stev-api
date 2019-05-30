@@ -64,13 +64,22 @@ def aggregate_data(df):
 
     # Drop rows where the NaN value exists from the dataframe
     df.dropna(inplace=True)
+    # We can't handle zero responses, it doesnt make sense
+    df['Responses'].replace(to_replace=0, value=1, inplace=True)
 
     # Initialize the aggregated dataframe by copying the base data frame
     ag_df = df.copy()
 
     # Drop the unnecessary columns
-    ag_df.drop(['Department Code', 'Department Standard Deviation','Question Number','Section Number','CRN','Campus Code','Question', 'Mean', 'Median', 'Standard Deviation', 'Department Mean', 'Department Median', 'Similar College Mean', 'College Mean', 'College Median', 'Percent Rank - Department', 'Percent Rank - College', 'Percent #1', 'Percent #2', 'Percent #3', 'Percent #4', 'Percent #5', 'ZScore - College', 'ZScore - College Similar Sections', 'Course Level', 'Section Size', 'Similar College Median'], axis=1, inplace = True, errors='ignore')
-
+    columns_used = ['Responses','Section Title', 'College Code','Subject Code', 'Term Code','Course Number', 'Instructor ID', 'Instructor First Name', 'Instructor Last Name']
+    columns_to_drop = list(df.columns)
+    for i in columns_used:
+        try:
+            columns_to_drop.remove(i)
+        except:
+            raise Exception('In data_aggregation.py, the input df does not contain the column '+i+', which is needed for the aggregation')
+    ag_df.drop(columns_to_drop, axis=1, inplace = True, errors='ignore')     
+        
     # Add in the columns to be filled with the aggregated values
     ag_df.insert(3,'Avg Department Rating', 0.0)
     ag_df.insert(4,'SD Department Rating', 0.0)

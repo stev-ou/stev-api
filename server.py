@@ -16,11 +16,16 @@ base_api_route = '/api/v0/'
 
 db = mongo_driver()
 
+# PreCompute the instructor and course lists
+instructor_list = SearchAutocomplete(db, 'instructor')
+course_list = SearchAutocomplete(db, 'course')
+
 app = Flask(__name__)
 CORS(app)
+
 # useful for testing
 # curl -i http://localhost:5050/api/v0/
-# algolia for search utility
+
 @app.route('/')
 def hello_world():
     return 'Ping <a href="/api/v0/">/api/v0/</a> for api'.format(str(request.remote_addr))
@@ -44,8 +49,12 @@ def course_search_api():
 # Search for all entries for autocomplete
 @app.route(base_api_route+'<string:search_type>/all')
 def course_autocomplete_api(search_type):
-    response_list = SearchAutocomplete(db, search_type[:-1])
-    return jsonify({'result':response_list})
+    if search_type == 'instructors':
+        return jsonify({'result':instructor_list})
+    elif search_type =='courses':
+        return jsonify({'result':course_list})
+    else:
+        return jsonify({})
 
 ### APIs for course search
 # Figure 1 api 
@@ -128,5 +137,5 @@ if __name__ == '__main__':
     # print('IN DEVELOPMENT MODE; NO DATABASE UPDATE PERFORMED')
     update_database(force_update=False)
     print("Done.")
-    print("Starting server...")
-    app.run(host='0.0.0.0', port=80)
+    print("Starting server listening on port 5050...")
+    app.run(host='0.0.0.0', port=5050)
