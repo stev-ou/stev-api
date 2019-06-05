@@ -54,7 +54,6 @@ def sort_by_term_code(semester_int_list):
         raise Exception('Sorting term codes didnt work in the api generator')
     return final_order# return the most recent sem as a term code
 
-
 # Get the collection of interest from the db, based on a filter and potentially a known collection
 def query_df_from_mongo(db,coll_filter, collections = AGG_COLLECTION_NAMES):
     """
@@ -85,7 +84,6 @@ def query_df_from_mongo(db,coll_filter, collections = AGG_COLLECTION_NAMES):
         print('The below filter was not found within any of the mongo collection.')
         pprint.pprint(coll_filter)
         raise Exception('The filter was not found in the mongo collection.')
-
     return df, coll_name
 
 def drop_duplicate_courses(df):
@@ -113,7 +111,6 @@ def CourseFig1Table(db, uuid):
             valid_uuid - a validated uuid from the 'uuid' field in the dataframe
     Returns: a valid json needed to generate the figure
     '''
-
     # Construct the json containing necessary data for figure 1 on course page
     ret_json = {"result": {"instructors": []}}
 
@@ -196,8 +193,6 @@ def CourseFig2Chart(db, valid_uuid):
     Returns: a valid json needed to generate the figure
     '''
     ##### Initial setup stuff
-    
-
     # Define an instructor function to return the instructor dict based on passed parameters
     def instructor(last_name, first_name, mean_in_course, semester_taught, enrollment):
         return {'name':str(last_name)+' '+str(first_name), 'instructor mean in course':float(mean_in_course), 
@@ -426,8 +421,6 @@ def InstructorFig1Table(db, instructor_id):
     of the courses taught by this instructor.
     The courses will be returned with the dept name, course number, course name, specific course rating, and term
     """
-
-
     # Construct the json containing necessary data for figure 1 on course page
     ret_json = {"result": {"courses": []}}
 
@@ -489,7 +482,6 @@ def InstructorFig1Table(db, instructor_id):
     ret_json['result']['instructor name'] = str(df['Instructor First Name'].unique()[0])+ ' ' + str(df['Instructor Last Name'].unique()[0])
                 
     return ret_json
-
 
 def InstructorFig2Timeseries(db, instructor_id):
     """
