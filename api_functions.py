@@ -9,6 +9,7 @@ import yaml
 from data_aggregation import combine_means
 import pymongo
 import numpy as np
+from datetime import datetime
 
 # Establish the DB Name 
 DB_NAME = "reviews-db"
@@ -50,9 +51,8 @@ def sort_by_term_code(semester_int_list):
                 if str(sem)[-2:] == ending and sem not in final_order:
                     final_order.append(sem)
     if set(final_order)!=set(semester_int_list):
-        raise Exception('Sorting term codes didnt work for api generator')
+        raise Exception('Sorting term codes didnt work in the api generator')
     return final_order# return the most recent sem as a term code
-
 
 # Get the collection of interest from the db, based on a filter and potentially a known collection
 def query_df_from_mongo(db,coll_filter, collections = AGG_COLLECTION_NAMES):
@@ -84,7 +84,6 @@ def query_df_from_mongo(db,coll_filter, collections = AGG_COLLECTION_NAMES):
         print('The below filter was not found within any of the mongo collection.')
         pprint.pprint(coll_filter)
         raise Exception('The filter was not found in the mongo collection.')
-
     return df, coll_name
 
 def drop_duplicate_courses(df):
@@ -112,7 +111,6 @@ def CourseFig1Table(db, uuid):
             valid_uuid - a validated uuid from the 'uuid' field in the dataframe
     Returns: a valid json needed to generate the figure
     '''
-
     # Construct the json containing necessary data for figure 1 on course page
     ret_json = {"result": {"instructors": []}}
 
@@ -195,8 +193,6 @@ def CourseFig2Chart(db, valid_uuid):
     Returns: a valid json needed to generate the figure
     '''
     ##### Initial setup stuff
-    
-
     # Define an instructor function to return the instructor dict based on passed parameters
     def instructor(last_name, first_name, mean_in_course, semester_taught, enrollment):
         return {'name':str(last_name)+' '+str(first_name), 'instructor mean in course':float(mean_in_course), 
@@ -382,7 +378,7 @@ def CourseFig4TableBar(db, valid_uuid):
                 rs = sub_sub_df['Responses'].sum()
                 tot_weighted_mean_responses+=wms
                 tot_responses+=rs
-                q_ratings.append(wms/rs)
+                q_ratings.append(round(wms/rs, 4))
                 # Ya Yeet
             del sub_sub_df
         response['result']['questions'].append({'question':q, 'ratings':q_ratings})
@@ -392,6 +388,32 @@ def CourseFig4TableBar(db, valid_uuid):
 
 ###### APIs for Searchby instructor ########
 
+def InstructorChipAPI(db, instructor_id):
+    """
+    This function takes a db connection and instructor_id and returns a dict containing the number of years that the 
+    instructor has taught at OU, the most recent semester taught, and a list of departments that the instructor has taught within.
+    """
+    coll_filter = {"Instructor ID":instructor_id}
+    df, _ = query_df_from_mongo(db,coll_filter)
+
+    # Get the oldest term code and convert it to a term
+    term_codes = list(df['Term Code'].unique())
+    oldest_term = SEMESTER_MAPPINGS[str(sort_by_term_code(term_codes)[-1])]
+
+    # Get the number of years teaching as a function of oldest term
+    this_year = datetime.today().year
+    diff = this_year - int(oldest_term[-4:])
+
+    # Get a list of unique departments taught 
+    subject_list = list(df['Subject Code'].unique())
+
+    instructor_first_name = list(df['Instructor First Name'])[0]
+    instructor_last_name = list(df['Instructor Last Name'])[0]
+    instr_name = instructor_first_name+ ' '+instructor_last_name
+    # Convert the results to a dict
+    result = {'result':{'name': instr_name, 'most_recent_semester': oldest_term, 'num_years':diff, 'depts_taught':subject_list}}
+    return result
+
 #Feel free to rename this, just keeping it explicit so its easy to find
 def InstructorFig1Table(db, instructor_id):
     """
@@ -399,8 +421,6 @@ def InstructorFig1Table(db, instructor_id):
     of the courses taught by this instructor.
     The courses will be returned with the dept name, course number, course name, specific course rating, and term
     """
-
-
     # Construct the json containing necessary data for figure 1 on course page
     ret_json = {"result": {"courses": []}}
 
@@ -462,7 +482,6 @@ def InstructorFig1Table(db, instructor_id):
     ret_json['result']['instructor name'] = str(df['Instructor First Name'].unique()[0])+ ' ' + str(df['Instructor Last Name'].unique()[0])
                 
     return ret_json
-
 
 def InstructorFig2Timeseries(db, instructor_id):
     """
@@ -623,6 +642,10 @@ def InstructorFig3TableBar(db, instructor_id):
     # Look through each course for each question. If found, add avg rating to list. If not found, add 'none'
     for crs in unique_courses:
         subset = df[(df['course']==crs)]
+        # This if will catch and remove courses without individual question ratings
+        if subset[['Question', 'Mean', 'Responses']].isnull().values.any():
+            ret_json['result']['courses'].remove(crs)
+            continue
         for j in range(len(ret_json['result']['questions'])):
             question = ret_json['result']['questions'][j]['question']
             if question in list(subset['Question']):
@@ -632,15 +655,14 @@ def InstructorFig3TableBar(db, instructor_id):
                 elif len(ss['Mean']) != 0:
                     rating = np.sum(ss['Mean'])/len(ss['Mean'])
                 else:
-                    rating = 'none'
+                    rating = 0
             else:
-                rating = 'none'
-            ret_json['result']['questions'][j]['ratings'].append(rating)
+                rating = 0
+            ret_json['result']['questions'][j]['ratings'].append(round(rating,4))
 
     ret_json['result']['instructor name'] = df['Instructor First Name'][0]+' '+ df['Instructor Last Name'][0]
 
     return ret_json
-
 
 ######################
 
@@ -703,14 +725,14 @@ if __name__ == '__main__':
     # pprint.pprint(CourseFig4TableBar(mongo_driver(), 'edss3553'))
     # pprint.pprint(InstructorFig1Table(mongo_driver(), 1124723821))
     # pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 1124723821))
-    # pprint.pprint(InstructorFig3TableBar(mongo_driver(), 1124723821))
-    # pprint.pprint(InstructorFig3TableBar(mongo_driver(), 112131147))
-    response = SearchAutocomplete(mongo_driver(), 'course')
-    res_dict = json.loads(json.dumps(response))
-    id_list = [el['value'] for el in res_dict]
-    import random
-    choices = random.choices(id_list, k=8)
-    print(choices)
+    pprint.pprint(InstructorFig3TableBar(mongo_driver(), 1446079033))
+    pprint.pprint(InstructorChipAPI(mongo_driver(), 302554668))
+    # response = SearchAutocomplete(mongo_driver(), 'course')
+    # res_dict = json.loads(json.dumps(response))
+    # id_list = [el['value'] for el in res_dict]
+    # import random
+    # choices = random.choices(id_list, k=8)
+    # print(choices)
 
 
 
