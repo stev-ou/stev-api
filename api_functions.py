@@ -404,14 +404,19 @@ def InstructorChipAPI(db, instructor_id):
     # Get the oldest term code and convert it to a term
     term_codes = list(df['Term Code'].unique())
     oldest_term = SEMESTER_MAPPINGS[str(sort_by_term_code(term_codes)[-1])]
-    # Get a list of unique departments taught in
+
+    # Get the number of years teaching as a function of oldest term
+    this_year = datetime.today().year
+    diff = this_year - int(oldest_term[-4:])
+
+    # Get a list of unique departments taught 
     subject_list = list(df['Subject Code'].unique())
 
     instructor_first_name = list(df['Instructor First Name'])[0]
     instructor_last_name = list(df['Instructor Last Name'])[0]
     instr_name = instructor_first_name+ ' '+instructor_last_name
     # Convert the results to a dict
-    result = {'result':{'name': instr_name, 'most_recent_semester': oldest_term, 'depts_taught':subject_list}}
+    result = {'result':{'name': instr_name, 'most_recent_semester': oldest_term, 'num_years':diff, 'depts_taught':subject_list}}
     return result
 
 #Feel free to rename this, just keeping it explicit so its easy to find
@@ -729,7 +734,7 @@ if __name__ == '__main__':
     # pprint.pprint(InstructorFig1Table(mongo_driver(), 1124723821))
     # pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 1124723821))
     pprint.pprint(InstructorFig3TableBar(mongo_driver(), 1446079033))
-    # pprint.pprint(InstructorChipAPI(mongo_driver(), 302554668))
+    pprint.pprint(InstructorChipAPI(mongo_driver(), 302554668))
     # response = SearchAutocomplete(mongo_driver(), 'course')
     # res_dict = json.loads(json.dumps(response))
     # id_list = [el['value'] for el in res_dict]
