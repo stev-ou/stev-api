@@ -17,6 +17,8 @@ echo "y" | gcloud auth configure-docker
 docker push gcr.io/ou-reviews/stev-api:latest
 
 gcloud --quiet config set project $PROJECT_NAME
+gcloud --quiet config set run/platform managed
+gcloud --quiet config set run/region us-central1 
 # gcloud --quiet config set compute/zone ${CLOUDSDK_COMPUTE_ZONE}
 
 gcloud beta run deploy stev-api --image gcr.io/ou-reviews/stev-api
