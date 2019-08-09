@@ -6,6 +6,8 @@ from bson.json_util import dumps
 import pandas as pd
 import json
 import api_functions as api
+from flask_graphql import GraphQLView
+from gql_schema import schema
 
 # Establish a database connection
 DB_NAME = "reviews-db"
@@ -22,6 +24,10 @@ course_list = api.SearchAutocomplete(db, 'course')
 
 app = Flask(__name__)
 CORS(app)
+
+app.add_url_rule('/gql', view_func=GraphQLView.as_view('graphql',
+                                                           #schema=schema,
+                                                           graphiql=True))
 
 # useful for testing
 # curl -i http://localhost:5050/api/v0/
@@ -66,7 +72,7 @@ def instructor_figure_apis(instructor_id, api_suffix):
 
 if __name__ == '__main__':
     print("Updating database...")
-    update_database(force_update=False)
+    #update_database(force_update=False)
     print("Done.")
     print("Starting server listening on port 5050...")
     app.run(host='0.0.0.0', port=5050)

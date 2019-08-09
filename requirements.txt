@@ -5,7 +5,9 @@ Click==7.0
 dnspython==1.16.0
 Flask==1.0.3
 Flask-Cors==3.0.7
+flask-graphql
 gunicorn==19.9.0
+graphene-mongo
 idna==2.8
 isort==4.3.20
 itsdangerous==1.1.0
