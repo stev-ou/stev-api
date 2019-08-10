@@ -27,6 +27,7 @@ course_list = api.SearchAutocomplete(db, 'course')
 app = Flask(__name__)
 CORS(app)
 
+# connect GQL endpoints
 app.add_url_rule('/gql', view_func=GraphQLView.as_view('graphql',
                                                         schema=schema,
                                                         graphiql=False))

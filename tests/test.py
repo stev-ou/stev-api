@@ -16,7 +16,7 @@ class basictest(unittest.TestCase):
         collection name = "aggregated_GCOE"
         '''
         try:
-            conn = mongo.mongo_driver()
+            conn = mongo.MongoDriver()
             DB_NAME = "reviews-db"
             COLLECTION_NAME = "aggregated_GCOE"
             conn.get_db_collection(DB_NAME, COLLECTION_NAME)
@@ -59,7 +59,7 @@ class basictest(unittest.TestCase):
         test_id_list = ['pe3223', 'engr2002', 'ahi5993', 'hist3863', 'ltrs3813', 'span5970', 'lat2113', \
         'eds6793', 'jmc4633', 'munm2313']
         # Create connection to the db
-        db = mongo.mongo_driver()
+        db = mongo.MongoDriver()
 
         # Try the function for autocomplete for all courses
         try:
@@ -92,7 +92,7 @@ class basictest(unittest.TestCase):
         test_id_list = [704184517, 1526026687, 1301025910, 1020330180,
                         1830690322, 433680882, 2121674585]
         # Create connection to the db
-        db = mongo.mongo_driver()
+        db = mongo.MongoDriver()
         try:
             print('SearchAutocomplete for all instructors')
             response = SearchAutocomplete(db, search_type='instructor')

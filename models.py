@@ -1,6 +1,6 @@
 from mongoengine import Document
 from mongoengine.fields import (
-    FloatField, ReferenceField, StringField,
+    FloatField, StringField, IntField
 )
 
 class Review(Document):
@@ -8,3 +8,9 @@ class Review(Document):
     college_code = StringField()
     instructor = StringField()
     department_mean = FloatField()
+
+class AggReview(Document):
+    meta = {'collection': 'aggregated_ARC'}
+    college_code = StringField()
+    instructor_id = IntField()
+    avg_dept_rating = FloatField()
