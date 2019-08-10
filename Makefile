@@ -16,7 +16,7 @@ debug:
 
 .PHONY: image
 image:
-	docker build . -t gcr.io/ou-reviews/stev-api
+	docker build . -t gcr.io/stev-ou/stev-api
 
 .PHONY: test
 test:
