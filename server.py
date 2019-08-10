@@ -1,13 +1,14 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from data_loader import update_database
-from mongo import mongo_driver
+from mongo import MongoDriver
 from bson.json_util import dumps
 import pandas as pd
 import json
 import api_functions as api
 from flask_graphql import GraphQLView
 from gql_schema import schema
+from mongoengine import connect
 
 # Establish a database connection
 DB_NAME = "reviews-db"
@@ -16,7 +17,8 @@ COLLECTION_NAME = "reviews-collection"
 # base route for this api version
 base_api_route = '/api/v0/'
 
-db = mongo_driver()
+db = MongoDriver()
+gql_db = connect('reviews-db', host="mongodb+srv://zach:G8GqPsUgP6b9VUvc@cluster0-svcn3.gcp.mongodb.net/test?retryWrites=true")
 
 # PreCompute the instructor and course lists
 instructor_list = api.SearchAutocomplete(db, 'instructor')
@@ -26,8 +28,11 @@ app = Flask(__name__)
 CORS(app)
 
 app.add_url_rule('/gql', view_func=GraphQLView.as_view('graphql',
-                                                           #schema=schema,
-                                                           graphiql=True))
+                                                        schema=schema,
+                                                        graphiql=False))
+app.add_url_rule('/giql', view_func=GraphQLView.as_view('graphiql',
+                                                        schema=schema,
+                                                        graphiql=True))
 
 # useful for testing
 # curl -i http://localhost:5050/api/v0/
@@ -71,8 +76,8 @@ def instructor_figure_apis(instructor_id, api_suffix):
     return jsonify(response)
 
 if __name__ == '__main__':
-    print("Updating database...")
+    #print("Updating database...")
     #update_database(force_update=False)
-    print("Done.")
+    #print("Done.")
     print("Starting server listening on port 5050...")
     app.run(host='0.0.0.0', port=5050)

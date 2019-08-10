@@ -1,12 +1,13 @@
-import datetime 
+import datetime
 import pprint
 from pymongo import MongoClient
 
-class mongo_driver():
+DATABASE_URL = "mongodb+srv://zach:G8GqPsUgP6b9VUvc@cluster0-svcn3.gcp.mongodb.net/test?retryWrites=true"
+
+class MongoDriver():
     def __init__(self):
         # create mongo client (just connecting to local db)
-        self.client = MongoClient("mongodb+srv://zach:G8GqPsUgP6b9VUvc"
-        "@cluster0-svcn3.gcp.mongodb.net/test?retryWrites=true")
+        self.client = MongoClient(DATABASE_URL)
 
     def get_client(self):
         return self.client
@@ -35,10 +36,10 @@ if __name__ == '__main__':
     post = {
             "user": "Sam",
             "text": "Remi is a sick lad",
-            "date": datetime.datetime.utcnow() 
+            "date": datetime.datetime.utcnow()
           }
 
-    db = mongo_driver()
+    db = MongoDriver()
     collection = db.get_db_collection("test_db", "test_col")
     post_id = collection.insert_one(post).inserted_id
 

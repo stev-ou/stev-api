@@ -1,6 +1,6 @@
 import pprint
 import json
-from mongo import mongo_driver
+from mongo import MongoDriver
 import pandas as pd
 from collections import Counter
 import re
@@ -60,7 +60,7 @@ def query_df_from_mongo(db,coll_filter, collections = AGG_COLLECTION_NAMES):
     This function will use a coll_filter, AKA a cursor, to query the collections in COLLECTION_NAMES and will then return 
     the db and the coll_name where the filter was found.
     Inputs:
-    db - a connection to the mongodb, or more concretely a mongo_driver() object
+    db - a connection to the mongodb, or more concretely a MongoDriver() object
     coll_filter - a valid filter of the form required by mongodb
     collections (optional) - a list of collections to search through for the cursor/filter
 
@@ -107,7 +107,7 @@ def CourseFig1Table(db, uuid):
     rating each professor received, and what average rating each instructor received on average 
     in the most recent semester of data.
     api schema defined in api_schema.py
-    Inputs: db - a connection to the mongodb, i.e. db = mongo_driver()
+    Inputs: db - a connection to the mongodb, i.e. db = MongoDriver()
             valid_uuid - a validated uuid from the 'uuid' field in the dataframe
     Returns: a valid json needed to generate the figure
     '''
@@ -188,7 +188,7 @@ def CourseFig2Chart(db, valid_uuid):
     This function will build the json for the response to build the relative department rating figure 
     (2nd from top on the left side). The json has structure given in schema.json, for this rating.
 
-    Inputs: db - a connection to the mongodb, i.e. db=mongo_driver()
+    Inputs: db - a connection to the mongodb, i.e. db=MongoDriver()
             valid_uuid - a validated uuid from the 'uuid' field in the dataframe
     Returns: a valid json needed to generate the figure
     '''
@@ -720,14 +720,14 @@ if __name__ == '__main__':
     # print(test)
     # sort_by_term_code([201710, 201820, 201620, 201410, 201110, 201630, 201610])
 
-    # uuid_df, coll_name = query_df_from_mongo(mongo_driver(),cursor)
-    # pprint.pprint(CourseFig1Table(mongo_driver(), 'engr2002'))
-    # pprint.pprint(CourseFig4TableBar(mongo_driver(), 'edss3553'))
-    # pprint.pprint(InstructorFig1Table(mongo_driver(), 1124723821))
-    # pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 1124723821))
-    pprint.pprint(InstructorFig3TableBar(mongo_driver(), 1446079033))
-    pprint.pprint(InstructorChipAPI(mongo_driver(), 302554668))
-    # response = SearchAutocomplete(mongo_driver(), 'course')
+    # uuid_df, coll_name = query_df_from_mongo(MongoDriver(),cursor)
+    # pprint.pprint(CourseFig1Table(MongoDriver(), 'engr2002'))
+    # pprint.pprint(CourseFig4TableBar(MongoDriver(), 'edss3553'))
+    # pprint.pprint(InstructorFig1Table(MongoDriver(), 1124723821))
+    # pprint.pprint(InstructorFig2Timeseries(MongoDriver(), 1124723821))
+    pprint.pprint(InstructorFig3TableBar(MongoDriver(), 1446079033))
+    pprint.pprint(InstructorChipAPI(MongoDriver(), 302554668))
+    # response = SearchAutocomplete(MongoDriver(), 'course')
     # res_dict = json.loads(json.dumps(response))
     # id_list = [el['value'] for el in res_dict]
     # import random

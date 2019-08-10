@@ -1,5 +1,5 @@
 import pandas as pd
-from mongo import mongo_driver as db_conn
+from mongo import MongoDriver as db_conn
 import json
 import os
 import hashlib

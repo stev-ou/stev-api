@@ -3,15 +3,8 @@ from mongoengine.fields import (
     FloatField, ReferenceField, StringField,
 )
 
-
-class Course(Document):
-    meta = {'collection': 'department'}
-    name = StringField()
-    instructor = ReferenceField(Instructor)
-    rating = FloatField()
-
-
-class Instructor(Document):
-    meta = {'collection': 'role'}
-    name = StringField()
-    rating = FloatField()
+class Review(Document):
+    meta = {'collection': 'ARC'}
+    college_code = StringField()
+    instructor = StringField()
+    department_mean = FloatField()
