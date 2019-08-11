@@ -9,8 +9,6 @@ import api_functions as api
 from flask_graphql import GraphQLView
 from gql_schema import schema
 from mongoengine import connect
-from models import Review
-
 
 # Establish a database connection
 DB_NAME = "reviews-db"

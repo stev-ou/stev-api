@@ -4,7 +4,7 @@ from mongoengine.fields import (
 )
 
 class Review(Document):
-    meta = {'collection': 'ARC'}
+    meta = {'collection': 'GCOE'}
     college_code = StringField(name="College Code")
     college_mean = FloatField(name="College Mean")
     college_median = FloatField(name="College Median")
@@ -30,8 +30,23 @@ class Review(Document):
     term_code = IntField(name="Term Code")
     responses = IntField(name="Responses")
 
-class AggReview(Document):
-    meta = {'collection': 'aggregated_INTS'}
+class AggregatedReviews(Document):
+    meta = {'collection': 'aggregated_GCOE'}
     college_code = StringField(name="College Code")
+    course_number = IntField(name="Course Number")
+    instructor_enrollment = IntField(name="Instructor Enrollment")
+    avg_department_rating = FloatField(name="Avg Department Rating")
+    sd_department_rating = FloatField(name="SD Department Rating")
+    instructor_first_name = StringField(name="Instructor First Name")
     instructor_id = IntField(name="Instructor ID")
     avg_course_rating = FloatField(name="Avg Course Rating")
+    sd_course_rating = FloatField(name="SD Course Rating")
+    course_rank_in_dept_in_sem = IntField(name="Course Rank in Department in Semester")
+    instructor_last_name = StringField(name="Instructor Last Name")
+    course_title = StringField(name="Course Title")
+    avg_instructor_rating_in_sec = FloatField(name="Avg Instructor Rating In Section")
+    sd_instructor_rating_in_sec = FloatField(name="SD Instructor Rating In Section")
+    subject_code = StringField(name="Subject Code")
+    course_enrollment = IntField(name="Course Enrollment")
+    term_code = IntField(name="Term Code")
+    course_uuid = StringField(name="course_uuid")
