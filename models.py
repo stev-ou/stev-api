@@ -4,8 +4,9 @@ from mongoengine.fields import (
 )
 
 class Review(Document):
-    meta = {'collection': 'GCOE'}
-    college_code = StringField(name="College Code")
+    meta = {'collection': 'ARC'}
+    college_code = StringField(name="College Code", help_text="The \
+        abbreviated name of the college ")
     college_mean = FloatField(name="College Mean")
     college_median = FloatField(name="College Median")
     course_number = IntField(name="Course Number")
@@ -31,7 +32,7 @@ class Review(Document):
     responses = IntField(name="Responses")
 
 class AggregatedReviews(Document):
-    meta = {'collection': 'aggregated_GCOE'}
+    meta = {'collection': 'aggregated_ARC'}
     college_code = StringField(name="College Code")
     course_number = IntField(name="Course Number")
     instructor_enrollment = IntField(name="Instructor Enrollment")
