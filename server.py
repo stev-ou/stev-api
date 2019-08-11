@@ -9,6 +9,8 @@ import api_functions as api
 from flask_graphql import GraphQLView
 from gql_schema import schema
 from mongoengine import connect
+from models import Review
+
 
 # Establish a database connection
 DB_NAME = "reviews-db"
@@ -18,7 +20,7 @@ COLLECTION_NAME = "reviews-collection"
 base_api_route = '/api/v0/'
 
 db = MongoDriver()
-gql_db = connect('reviews-db', host="mongodb+srv://zach:G8GqPsUgP6b9VUvc@cluster0-svcn3.gcp.mongodb.net/test?retryWrites=true")
+gql_db = connect(host="mongodb+srv://zach:G8GqPsUgP6b9VUvc@cluster0-svcn3.gcp.mongodb.net/reviews-db?retryWrites=true")
 
 # PreCompute the instructor and course lists
 instructor_list = api.SearchAutocomplete(db, 'instructor')
@@ -80,5 +82,6 @@ if __name__ == '__main__':
     #print("Updating database...")
     #update_database(force_update=False)
     #print("Done.")
+
     print("Starting server listening on port 5050...")
     app.run(host='0.0.0.0', port=5050)
