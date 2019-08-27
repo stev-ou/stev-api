@@ -153,7 +153,7 @@ def aggregate_data(df):
 
                             # Fill the Num Responses column, based on the minimum number of responses in the group of questions
                             # if they teach two or more sections, add the number of students in each course to get the total number
-                            subset = subset.drop_duplicates(subset=['Course Number', 'Section Number'])
+                            subset = subset.drop_duplicates(subset=['Course Number', 'Responses'])
                             total_responses = 0
 
                             for i in list(subset['Responses']):
@@ -244,13 +244,20 @@ if __name__ == '__main__':
     df = df.drop(['_id'],axis=1).rename(columns ={'Individual Responses':'Responses'})
     df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
     df['Question Number'] = df['Question Number'].astype(int)
+    df['Term Code'] = df['Term Code'].astype(int)
     # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
     df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
     df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
+
     ag_df = aggregate_data(df)
+    print(ag_df.head())
+    print('\n\n')
+    print(ag_df['Subject Code'].unique())
 
     # Tests the dataframe department ranking
     print(ag_df.loc[((ag_df['Term Code']==201810) & (ag_df['Subject Code']=='AME')), ['Course Number','Avg Course Rating','Course Rank in Department in Semester']].sort_values('Avg Course Rating'))
 
     if len(ag_df[ag_df[['Term Code','Course Title', 'Instructor Last Name']].duplicated() == True]) == 0:
         print("From basic tests, the data aggregation is working correctly.")
+    else:
+        print('From basic tests, the aggregation has errors.')
