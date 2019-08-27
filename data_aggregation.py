@@ -18,6 +18,14 @@ from mongo import mongo_driver as db_conn
 # Get file location for mappings.yaml and reading data
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
 
+# This is how we could weight each individual question; Framework already built out
+# Read in the question mappings values from the mappings.yaml
+# file_path = __location__+"/mappings.yaml"
+# with open(file_path) as f:
+#     # use safe_load instead load
+#     mappings = yaml.safe_load(f)
+#     question_weighting = mappings['Instructor_question_weighting']
+
 def combine_means(mean_list, pop_list, weight_list):
     '''
     This function takes lists of means, population sizes, and weights for each population, and combines the result into a single mean value.
@@ -61,7 +69,6 @@ def combine_standard_deviations(sd_list, mean_list,pop_list, weight_list):
     sd = np.sqrt(deviance/(np.sum(pop_list*weight_list)))
     return pop_mean,sd
 
-
 def aggregate_data(df):
 
     # Drop rows where the NaN value exists from the dataframe
@@ -97,13 +104,6 @@ def aggregate_data(df):
     ag_df.rename(columns = {'Section Title':'Course Title', 'Responses':'Instructor Enrollment'}, inplace= True)
     # Remove the repeat rows that will occur because we are taking 1-10 question responses down to 1
     ag_df.drop_duplicates(subset = ag_df.columns.drop(['Course Title', 'Instructor Enrollment'], errors='ignore'), inplace = True)
-    # Read in the question mappings values from the mappings.yaml
-    file_path = __location__+"/mappings.yaml"
-
-    with open(file_path) as f:
-        # use safe_load instead load
-        mappings = yaml.safe_load(f)
-        question_weighting = mappings['Instructor_question_weighting']
 
     # Lets fill the average instructor rating in each section, i.e. the combined rating for each question per section per term
     dropped_entries = 0
@@ -133,8 +133,11 @@ def aggregate_data(df):
                         else:
                             # Compute the combined mean and standard deviation of the questions
                             # Input the standard deviation, mean, number of responses, and the question number mapped to the weights for each subject-course-instructor combination
-                            instructor_mean, instructor_sd = combine_standard_deviations(subset['Standard Deviation'], subset['Mean'], subset['Responses'], subset['Question Number'].map(str).map(arg=question_weighting[str(subset['College Code'].unique()[0])]))
-                            
+                            try:
+                                instructor_mean, instructor_sd = combine_standard_deviations(subset['Standard Deviation'], subset['Mean'], subset['Responses'],[1]*len(subset['Responses'])) # Uncomment this for specific weighting for each question -> subset['Question Number'].map(str).map(arg=question_weighting[str(subset['College Code'].unique()[0])]))
+                            except KeyError:
+                                print('The file mappings.yaml does not have a question-weight mapping for this college. Uncomment the below')
+
                             if math.isnan(instructor_mean) or math.isnan(instructor_sd):
                                 print('Nan for instructor mean')
                                 print(subset['Mean'])
@@ -175,8 +178,7 @@ def aggregate_data(df):
 
                     # Quick Nan check to make sure we arent computing Nan values
                     if math.isnan(course_mean) or math.isnan(course_sd):
-                        print('Nan for course meanocr_collections = ['CoA', 'CoAaS', 'CoA&GS', 'CoCE-DoA', 'MFPCoB', 'MCoEaE', 'JRCoE', 'GCoE', 'WFCoFA', 'HC', 'CoIS', 'GCoJaMC', 'CoPaCS', 'UC', 'CfIaDL', 'EWP', 'R-AF']
-')
+                        print('Nan for course mean\n\n')
                         print(subset['SD Instructor Rating In Section'])
                         print(subset['Avg Instructor Rating In Section'])
                         print(subset['Instructor Enrollment'])
@@ -232,16 +234,16 @@ if __name__ == '__main__':
     # Params for testing
     OCR_DB_NAME = 'ocr_db_v1'
     ocr_coll = 'GCoE'
+
     # Establish db connection
     conn = db_conn()
-    ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
-
     # Prime the df for aggregation
-    print('Converting the scraped collection '+ocr_coll+ ' to pd dataframe.')
+    print('Converting the scraped collection ' + ocr_coll+ ' to pd dataframe.')
     ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
     df = pd.DataFrame(list(ocr_db.find()))
     df = df.drop(['_id'],axis=1).rename(columns ={'Individual Responses':'Responses'})
     df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
+    df['Question Number'] = df['Question Number'].astype(int)
     # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
     df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
     df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
@@ -249,6 +251,6 @@ if __name__ == '__main__':
 
     # Tests the dataframe department ranking
     print(ag_df.loc[((ag_df['Term Code']==201810) & (ag_df['Subject Code']=='AME')), ['Course Number','Avg Course Rating','Course Rank in Department in Semester']].sort_values('Avg Course Rating'))
-    
+
     if len(ag_df[ag_df[['Term Code','Course Title', 'Instructor Last Name']].duplicated() == True]) == 0:
         print("From basic tests, the data aggregation is working correctly.")

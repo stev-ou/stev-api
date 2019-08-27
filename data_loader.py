@@ -37,6 +37,7 @@ def update_database(force_update=False):
         df = pd.DataFrame(list(ocr_db.find()))
         df.drop(['_id'],axis=1, inplace=True).rename(columns ={'Individual Responses':'Responses'}, inplace=True)
         df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
+        df['Question Number'] = df['Question Number'].astype(int)
         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
         df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
         df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
