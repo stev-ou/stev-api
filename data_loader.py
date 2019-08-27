@@ -8,7 +8,8 @@ import hashlib
 from data_aggregation import aggregate_data
 
 # Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
-DB_NAME = "reviews-db" # practice
+DB_NAME = "reviews-db" 
+MERGED_DB_NAME = "merged-reviews-db"
 OCR_DB_NAME = 'ocr_db'
 ocr_collections = ['ARC','BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 
@@ -38,7 +39,7 @@ def update_database(force_update=False):
         if file[-4:] != '.csv':
             print('The file ' + file + ' is located in the data/ directory, but cannot be uploaded to the DB, because it is not a .csv')
             data_files.remove(file)
-        # Convert the relevant .csv data files to df and put into db_df_list
+        # Convert the relevant .csv data files to df and put into db_dfs
         else:
             print('Converting the file ' + file + ' to pd dataframe.')
             # Reading data into python from the csv
