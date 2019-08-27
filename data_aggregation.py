@@ -4,7 +4,7 @@ This script will contain functions used to aggregate the input data into more us
  in the data_aggregation_exploration.ipynb.
 
  '''
-
+ # global/pypi
 import numpy as np
 import pandas as pd
 import yaml
@@ -12,6 +12,8 @@ import os
 import math
 from tqdm import tqdm
 import datetime
+# local
+from mongo import mongo_driver as db_conn
 
 # Get file location for mappings.yaml and reading data
 __location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
@@ -73,6 +75,7 @@ def aggregate_data(df):
     # Drop the unnecessary columns
     columns_used = ['Responses','Section Title', 'College Code','Subject Code', 'Term Code','Course Number', 'Instructor ID', 'Instructor First Name', 'Instructor Last Name']
     columns_to_drop = list(df.columns)
+    # Make sure the necessary columns exist
     for i in columns_used:
         try:
             columns_to_drop.remove(i)
@@ -101,10 +104,6 @@ def aggregate_data(df):
         # use safe_load instead load
         mappings = yaml.safe_load(f)
         question_weighting = mappings['Instructor_question_weighting']
-
-    ## Drop terms that are more than 5 years old
-    #current_year = datetime.datetime.now().year
-    #df = df[(df['Term Code'] > (current_year-4)*100)] # This works because Term codes begin with the year in question, so this drops everything before CY-4
 
     # Lets fill the average instructor rating in each section, i.e. the combined rating for each question per section per term
     dropped_entries = 0
@@ -144,6 +143,7 @@ def aggregate_data(df):
                                 print(subset['Question Number'].map(str).map(arg=question_weighting[str(subset['College Code'].unique()[0])]))
                                 print('Nan for (number entries = ' + str(len(ag_df_section_row))+ ') for term' + str(term)+ ', subject: '+ str(subject)+ ', course: '+ str(course)+ ', and instructor: '+ str(instructor))
                                 return 1
+
                             # Fill the Instructor Ratings Columns
                             ag_df.at[ag_df_section_row[0], 'Avg Instructor Rating In Section'] = instructor_mean
                             ag_df.at[ag_df_section_row[0], 'SD Instructor Rating In Section'] = instructor_sd
@@ -154,7 +154,7 @@ def aggregate_data(df):
                             total_responses = 0
 
                             for i in list(subset['Responses']):
-                                total_responses = total_responses + i
+                                total_responses += i
                             # Set the Num Responses in the agg df equal to the total responses in this course
                             ag_df.at[ag_df_section_row[0], 'Instructor Enrollment'] = total_responses
 
@@ -175,8 +175,8 @@ def aggregate_data(df):
 
                     # Quick Nan check to make sure we arent computing Nan values
                     if math.isnan(course_mean) or math.isnan(course_sd):
-                        print('Nan for course mean')
-                        print('\n')
+                        print('Nan for course meanocr_collections = ['CoA', 'CoAaS', 'CoA&GS', 'CoCE-DoA', 'MFPCoB', 'MCoEaE', 'JRCoE', 'GCoE', 'WFCoFA', 'HC', 'CoIS', 'GCoJaMC', 'CoPaCS', 'UC', 'CfIaDL', 'EWP', 'R-AF']
+')
                         print(subset['SD Instructor Rating In Section'])
                         print(subset['Avg Instructor Rating In Section'])
                         print(subset['Instructor Enrollment'])
@@ -200,12 +200,10 @@ def aggregate_data(df):
             if len(subset)!=0:
                 # Compute the combined mean and standard deviation of all of the courses within the department
                 #### IMPORTANT #### Population Weighting used in calculation of department parameters
-
                 department_mean, department_sd = combine_standard_deviations(subset['SD Course Rating'], subset['Avg Course Rating'], subset['Course Enrollment'], np.ones(len(subset['Avg Course Rating'])))
                 # Quick Nan check to make sure we arent computing Nan values
                 if math.isnan(department_mean) or math.isnan(department_sd):
-                    print('Nan for department mean')
-                    print('\n')
+                    print('Nan for department mean\n\n')
                     print(subset['SD Course Rating'])
                     print(subset['Avg Course Rating'])
                     print(subset['Course Enrollment'])
@@ -221,10 +219,8 @@ def aggregate_data(df):
             else:
                 print('Error: forced to eliminate the department: '+ str(subject)+ ' for term code '+str(term))
     # # Add in a Queryable Course String for the search by course
-    # ag_df['Queryable Course String'] = ag_df['Subject Code'].map(str).str.lower() + ' ' + ag_df['Course Number'].map(str).str.lower() + ' ' + ag_df['Course Title'].map(str).str.lower()
-
     # Add in a uuid field for the course, based on subject code (lowercase) and course number
-    ag_df['course_uuid'] = ag_df['Subject Code'].map(str).str.lower() + ag_df['Course Number'].map(str)# .str.lower()
+    ag_df['course_uuid'] = ag_df['Subject Code'].map(str).str.lower() + ag_df['Course Number'].map(str)
 
     # Convert rankings to int
     ag_df['Course Rank in Department in Semester'] = ag_df['Course Rank in Department in Semester'].astype(int)
@@ -233,11 +229,24 @@ def aggregate_data(df):
     return ag_df
 
 if __name__ == '__main__':
-    
-    df = pd.read_csv("data/GCOE.csv") # Modify to correct data location
-    df.rename({'Instructor 1 ID':'Instructor ID', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, axis=1, inplace=True)
-    
+    # Params for testing
+    OCR_DB_NAME = 'ocr_db_v1'
+    ocr_coll = 'GCoE'
+    # Establish db connection
+    conn = db_conn()
+    ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
+
+    # Prime the df for aggregation
+    print('Converting the scraped collection '+ocr_coll+ ' to pd dataframe.')
+    ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
+    df = pd.DataFrame(list(ocr_db.find()))
+    df = df.drop(['_id'],axis=1).rename(columns ={'Individual Responses':'Responses'})
+    df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
+    # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
+    df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
+    df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
     ag_df = aggregate_data(df)
+
     # Tests the dataframe department ranking
     print(ag_df.loc[((ag_df['Term Code']==201810) & (ag_df['Subject Code']=='AME')), ['Course Number','Avg Course Rating','Course Rank in Department in Semester']].sort_values('Avg Course Rating'))
     
