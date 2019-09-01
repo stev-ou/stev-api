@@ -34,10 +34,10 @@ class basictest(unittest.TestCase):
         '''
 
         # Test the combined means
-        mean_sd = data_aggregation.combine_standard_deviations([4,6],[50,9], [47,100], [1,1]) # sd, means, populations, weights
+        mean_sd = data_aggregation.combine_standard_deviations([4,6],[50,9], [47,100]) # sd, means, populations, weights
         # Note that the above returns a tuple of combined (mean, sd) and thus tests for both mean and sd
 
-        if round(mean_sd[0], 2) == 22.11 and round(mean_sd[1], 2) == 19.88:
+        if round(mean_sd[0], 2) == 19.88:
             status = True
         else: 
             status = False
@@ -126,7 +126,7 @@ class basictest(unittest.TestCase):
         ag_df = data_aggregation.aggregate_data(df)
 
         # There should be no entries with the same course name, Instructor ID, and Term Code, so the below should be false
-        num_repeats = len(ag_df[ag_df[['course_uuid', 'Term Code','Instructor ID']].duplicated() == True])
+        num_repeats = len(ag_df[ag_df[['Subject Code', 'Course Number', 'Course Title', 'Term Code','Instructor ID']].duplicated() == True])
 
         return self.assertEqual(0, num_repeats)
 
