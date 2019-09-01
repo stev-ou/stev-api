@@ -1,16 +1,15 @@
 '''
 This script will contain functions used to aggregate the input data into more usable metrics. It will create an aggregated dataframe with the refined data and 
- will upload this aggregated dataframe to MongoDB to be used alongside the unmodified input data. Further documentation on the combination of means and standard deviations is available 
- in the data_aggregation_exploration.ipynb.
-
+ will return this aggregated dataframe to be used alongside the unmodified input data. 
  '''
+ 
  # global/pypi
 import numpy as np
 import pandas as pd
 
 def combine_standard_deviations(sd_list, mean_list,pop_list):
     '''
-    This function will take lists of standard deviations, means, population sizes, and weights for each list unit. The function
+    This function will take lists of standard deviations, means, and population sizes for each list unit. The function
     will combine the lists to produce a standard deviation for the group, based on the input parameters. Formula for combining the SD taken from the below link:
     
     https://www.researchgate.net/post/How_to_combine_standard_deviations_for_three_groups

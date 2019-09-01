@@ -3,6 +3,7 @@ import pandas as pd
 import json
 import os
 import hashlib
+from tqdm import tqdm
 
 # local
 from mongo import mongo_driver as db_conn
@@ -11,13 +12,16 @@ from data_aggregation import aggregate_data
 
 # Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
 DB_NAME = "reviews-db-v1" # practice
-OCR_DB_NAME = 'ocr_db_v4'
+OCR_DB_NAME = 'ocr_db_v1'
 ocr_collections = ['reviews']#, 'CoAaS', 'CoA&GS', 'CoCE-DoA', 'MFPCoB', 'MCoEaE', 'JRCoE', 'GCoE', 'WFCoFA', 'HC', 'CoIS', 'GCoJaMC', 'CoPaCS', 'UC', 'CfIaDL', 'EWP', 'R-AF']
+
+# Define the number of splits; Required to upload data in packets to avoid AutoReconnect Error from Mongo
+n_splits = 100
 
 ### DEBUG - force_update is always true - off in prod
 def update_database(force_update=False):
     '''
-    Get's the csv data from the OCR scraped databases in the MongoDB named OCR_DB_NAME, and runs aggregations on this data. Ensures that
+    Get's the data from the OCR scraped databases in the MongoDB named OCR_DB_NAME, and runs aggregations on this data. Ensures that
     each of these datasets (native, unmodified form and the aggregated form) exist within the DB_NAME Mongo database.
     :inputs:
     force_update: boolean denoting whether an update should be forced if the dataset and its aggregated form already exists in DB_NAME.
@@ -28,15 +32,14 @@ def update_database(force_update=False):
     # Establish DB connection
     conn = db_conn()
 
-    db_dfs = {}
-
     # Modify the ocr collections to achieve standard column naming form
     for ocr_coll in ocr_collections:
+        # Get the data out of the ocr_db
         print('Converting the scraped collection '+ocr_coll+ ' to pd dataframe.')
         ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
         df = pd.DataFrame(list(ocr_db.find()))
-        # Condition the df
-        ## Cleaning the data prior to aggregation
+
+        # Condition the df prior to aggregation
         df = df.drop(['_id'],axis=1, errors = 'ignore').rename(columns ={'Individual Responses':'Responses'})
         df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
         df['course_uuid'] = (df['Subject Code']+df['Course Number'].apply(str)+df['Section Title'].apply(lambda x: x[:-4])).apply(str).apply(hash).astype('int32').abs().apply(str) 
@@ -45,25 +48,19 @@ def update_database(force_update=False):
         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
         df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
         df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
+
         print('Loading '+ocr_coll)
         # If the collection doesnt exist or if the update is forced
 
         if conn.collection_existence_check(DB_NAME, ocr_coll)==False or force_update:
             collection = conn.get_db_collection(DB_NAME, ocr_coll)
 
-            # Get the dataframe
-            df = db_dfs[ocr_coll]
-
             # Delete all of the current contents from the collection
             collection.delete_many({})
-            if ocr_coll == 'CAaS':
-                for i in [1,2,3,4]: # Splits df into 4 parts for uploading without AutoReconnect Error, especially for 
-                    # load the db for the given data file into a json format
-                    records = df[(i-1)*int(len(df)/4):i*int(len(df)/4)].to_dict('records')
-                    # try to update the database with the given data file 
-                    result = collection.insert_many(records)
-            else:
-                records = df.to_dict('records')
+
+            for i in tqdm(range(n_splits)): # Splits df into n_splits parts
+                # load the db for the given data file into a json format
+                records = df[(i)*int(len(df)/100):(i+1)*int(len(df)/100)].to_dict('records')
                 # try to update the database with the given data file 
                 result = collection.insert_many(records)
 
@@ -76,8 +73,6 @@ def update_database(force_update=False):
         # Check to see if the aggregated document already exists in the document in the database
         if conn.collection_existence_check(DB_NAME, 'aggregated_' + ocr_coll)==False or force_update:
             collection = conn.get_db_collection(DB_NAME, 'aggregated_' + ocr_coll)
-            # Get the dataframe
-            df = db_dfs[ocr_coll]
 
             # Create the aggregated database 
             print('Aggregating the ' + ocr_coll + '. This usually takes approximately 1 minute, though can take longer for large datasets.')
@@ -89,8 +84,12 @@ def update_database(force_update=False):
             # Delete all of the current contents from the collection
             collection.delete_many({})
 
-            # Try to update the aggregated dataframe
-            ag_result = collection.insert_many(ag_records)
+            # Push the aggregated df to mongo
+            for i in tqdm(range(n_splits)): # Splits df into n_splits parts
+                # load the db for the given data file into a json format
+                records = ag_df[(i)*int(len(df)/100):(i+1)*int(len(df)/100)].to_dict('records')
+                # try to update the database with the given data file 
+                result = collection.insert_many(records)
 
             # Update the user on what happened
             print('A collection called aggregated_'+ ocr_coll + ' was added to the database '+ DB_NAME + '.')
