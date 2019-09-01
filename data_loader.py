@@ -35,7 +35,7 @@ def update_database(force_update=False):
     # Modify the ocr collections to achieve standard column naming form
     for ocr_coll in ocr_collections:
         # Get the data out of the ocr_db
-        print('Converting the scraped collection '+ocr_coll+ ' to pd dataframe.')
+        print('Converting the scraped collection -'+ocr_coll+ '- to pd dataframe.')
         ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
         df = pd.DataFrame(list(ocr_db.find()))
 
@@ -57,26 +57,27 @@ def update_database(force_update=False):
 
             # Delete all of the current contents from the collection
             collection.delete_many({})
+            # print(f'Uploading unmodified collection - {ocr_coll} - to {DB_NAME}')
 
-            for i in tqdm(range(n_splits)): # Splits df into n_splits parts
-                # load the db for the given data file into a json format
-                records = df[(i)*int(len(df)/100):(i+1)*int(len(df)/100)].to_dict('records')
-                # try to update the database with the given data file 
-                result = collection.insert_many(records)
+            # for i in tqdm(range(n_splits)): # Splits df into n_splits parts
+            #     # load the db for the given data file into a json format
+            #     records = df[(i)*int(len(df)/n_splits):(i+1)*int(len(df)/n_splits)].to_dict('records')
+            #     # try to update the database with the given data file 
+            #     result = collection.insert_many(records)
 
-            # Update the user on what happened
-            print('A collection called ' + ocr_coll + ' was added to the database '+ DB_NAME + '.')
+            # # Update the user on what happened
+            # print('A collection called -' + ocr_coll + '- was added to the database '+ DB_NAME + '.')
 
         else:
-            print('A collection called ' + ocr_coll + ' already exists in the database '+ DB_NAME + ' and was unmodified.')
+            print('A collection called -' + ocr_coll + '- already exists in the database '+ DB_NAME + ' and was unmodified.')
             
         # Check to see if the aggregated document already exists in the document in the database
         if conn.collection_existence_check(DB_NAME, 'aggregated_' + ocr_coll)==False or force_update:
             collection = conn.get_db_collection(DB_NAME, 'aggregated_' + ocr_coll)
 
             # Create the aggregated database 
-            print('Aggregating the ' + ocr_coll + '. This usually takes approximately 1 minute, though can take longer for large datasets.')
-            ag_df = aggregate_data(df)
+            print('Aggregating the -' + ocr_coll + '- collection. This can take ~5 minutes large datasets.')
+            ag_df = aggregate_data(df).reset_index()
 
             # load the db for the given data file into a json format
             ag_records = json.loads(ag_df.T.to_json()).values()
@@ -85,9 +86,9 @@ def update_database(force_update=False):
             collection.delete_many({})
 
             # Push the aggregated df to mongo
-            for i in tqdm(range(n_splits)): # Splits df into n_splits parts
+            for i in tqdm(range(n_splits)): # Splits ag_df into n_splits parts
                 # load the db for the given data file into a json format
-                records = ag_df[(i)*int(len(df)/100):(i+1)*int(len(df)/100)].to_dict('records')
+                records = ag_df[(i)*int(len(ag_df)/n_splits):(i+1)*int(len(ag_df)/n_splits)].to_dict('records')
                 # try to update the database with the given data file 
                 result = collection.insert_many(records)
 
@@ -103,7 +104,3 @@ def update_database(force_update=False):
 if __name__ == '__main__':
     # Update the database
     update_database(force_update=True)
-
-
-
-    

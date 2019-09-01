@@ -2,10 +2,11 @@
 This script will contain functions used to aggregate the input data into more usable metrics. It will create an aggregated dataframe with the refined data and 
  will return this aggregated dataframe to be used alongside the unmodified input data. 
  '''
- 
+
  # global/pypi
 import numpy as np
 import pandas as pd
+from copy import deepcopy
 
 def combine_standard_deviations(sd_list, mean_list,pop_list):
     '''
@@ -27,7 +28,7 @@ def combine_standard_deviations(sd_list, mean_list,pop_list):
     sd = np.sqrt(deviance/(np.sum(pop_list)))
     return sd
 
-def aggregate_df(df):
+def aggregate_data(df):
     """
     Aggregates a pandas dataframe of student reviews data. See the First, Second, and Third Operations below for more descriptions of functions.
     Note the similar form across operations.
@@ -36,6 +37,8 @@ def aggregate_df(df):
     :Returns:
     - ag_df: An aggregated version of the same dataframe
     """
+    # Can't handle if Responses are 0; Convert 0 responses to 1
+    df['Responses'] = df['Responses'].apply(lambda x: x if x>0 else 1)
     ag_df = deepcopy(df)
     
     # Remove the repeat rows that will occur because we are taking 1-10 question responses down to 1
