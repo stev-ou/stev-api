@@ -57,16 +57,16 @@ def update_database(force_update=False):
 
             # Delete all of the current contents from the collection
             collection.delete_many({})
-            # print(f'Uploading unmodified collection - {ocr_coll} - to {DB_NAME}')
+            print(f'Uploading unmodified collection - {ocr_coll} - to {DB_NAME}')
 
-            # for i in tqdm(range(n_splits)): # Splits df into n_splits parts
-            #     # load the db for the given data file into a json format
-            #     records = df[(i)*int(len(df)/n_splits):(i+1)*int(len(df)/n_splits)].to_dict('records')
-            #     # try to update the database with the given data file 
-            #     result = collection.insert_many(records)
+            for i in tqdm(range(n_splits)): # Splits df into n_splits parts
+                # load the db for the given data file into a json format
+                records = df[(i)*int(len(df)/n_splits):(i+1)*int(len(df)/n_splits)].to_dict('records')
+                # try to update the database with the given data file 
+                result = collection.insert_many(records)
 
-            # # Update the user on what happened
-            # print('A collection called -' + ocr_coll + '- was added to the database '+ DB_NAME + '.')
+            # Update the user on what happened
+            print('A collection called -' + ocr_coll + '- was added to the database '+ DB_NAME + '.')
 
         else:
             print('A collection called -' + ocr_coll + '- already exists in the database '+ DB_NAME + ' and was unmodified.')
