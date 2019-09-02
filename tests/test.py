@@ -28,16 +28,16 @@ class basictest(unittest.TestCase):
 
     # Tests for database aggregation
     # Test the computation of the mean and sd for the data aggregation
-    def test_compute_mean_sd(self):
+    def test_compute_sd(self):
         '''
         This unit test will examine the formulae for computing weighted mean and sd from the data aggregation script.
         '''
 
         # Test the combined means
-        mean_sd = data_aggregation.combine_standard_deviations([4,6],[50,9], [47,100]) # sd, means, populations, weights
+        sd = data_aggregation.combine_standard_deviations([4,6],[50,9], [47,100]) # sd, means, populations, weights
         # Note that the above returns a tuple of combined (mean, sd) and thus tests for both mean and sd
 
-        if round(mean_sd[0], 2) == 19.88:
+        if round(sd, 2) == 19.88:
             status = True
         else: 
             status = False
