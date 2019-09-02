@@ -3,22 +3,25 @@ import mongo
 import json
 import data_aggregation
 import pandas as pd
+import random
+from pprint import pprint
 from api_functions import *
+
+# Define Names of the collections
+DB_NAME = "reviews-db-v1"
+COLLECTION_NAME = "aggregated_reviews"
 
 class basictest(unittest.TestCase):
     """ Basic tests """
-
     # Test for mongo.py
     def test_connection(self):
         '''
         This unittest will test whether the mongo driver is connecting successfully to:
-        Database name: "reviews-db"
+        Database name: 
         collection name = "aggregated_GCOE"
         '''
         try:
             conn = mongo.mongo_driver()
-            DB_NAME = "reviews-db"
-            COLLECTION_NAME = "aggregated_GCOE"
             conn.get_db_collection(DB_NAME, COLLECTION_NAME)
             conn_status = True
         except:
@@ -28,16 +31,16 @@ class basictest(unittest.TestCase):
 
     # Tests for database aggregation
     # Test the computation of the mean and sd for the data aggregation
-    def test_compute_mean_sd(self):
+    def test_compute_sd(self):
         '''
         This unit test will examine the formulae for computing weighted mean and sd from the data aggregation script.
         '''
 
         # Test the combined means
-        mean_sd = data_aggregation.combine_standard_deviations([4,6],[50,9], [47,100], [1,1]) # sd, means, populations, weights
+        sd = data_aggregation.combine_standard_deviations(np.array([4,6]),np.array([50,9]), np.array([47,100])) # sd, means, populations, weights
         # Note that the above returns a tuple of combined (mean, sd) and thus tests for both mean and sd
 
-        if round(mean_sd[0], 2) == 22.11 and round(mean_sd[1], 2) == 19.88:
+        if round(sd, 2) == 19.88:
             status = True
         else: 
             status = False
@@ -54,10 +57,16 @@ class basictest(unittest.TestCase):
         This unit test will ping each of the currently created api endings with a variety of different courses to make sure they hit.
 
         '''
-        # Define the currently working courses
+        # Define the currently working courses - You can generate this by running api_functions.py
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
-        test_id_list = ['pe3223', 'engr2002', 'ahi5993', 'hist3863', 'ltrs3813', 'span5970', 'lat2113', \
-        'eds6793', 'jmc4633', 'munm2313']
+        # Generate random course/instructor IDs for the test
+        response = SearchAutocomplete(mongo_driver(), 'course')
+        res_dict = json.loads(json.dumps(response))
+        id_list = [el['value'] for el in res_dict]
+        test_id_list = random.choices(id_list, k=8)
+        print('Testing for the following instructor IDs, generated randomly from viable options: ')
+        pprint.pprint(test_id_list)
+
         # Create connection to the db
         db = mongo.mongo_driver()
 
@@ -87,10 +96,17 @@ class basictest(unittest.TestCase):
         This unit test will ping each of the currently created api endings with a variety of different instructors to make sure they hit.
 
         '''
-        # Define the currently working courses
+        # Define the currently working course APIs
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
-        test_id_list = [704184517, 1526026687, 1301025910, 1020330180,
-                        1830690322, 433680882, 2121674585]
+
+        # Generate random course/instructor IDs for the test
+        response = SearchAutocomplete(mongo_driver(), 'instructor')
+        res_dict = json.loads(json.dumps(response))
+        id_list = [el['value'] for el in res_dict]
+        test_id_list = random.choices(id_list, k=8)
+        print('Testing for the following instructor IDs, generated randomly from viable options: ')
+        pprint.pprint(test_id_list)
+
         # Create connection to the db
         db = mongo.mongo_driver()
         try:
@@ -122,11 +138,20 @@ class basictest(unittest.TestCase):
         # Test the data aggregation for unique entries
         df = pd.read_csv('data/GCOE.csv')
         df.rename({'Instructor 1 ID':'Instructor ID', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, axis=1, inplace=True)
+        # Condition the df prior to aggregation
+        df = df.drop(['_id'],axis=1, errors = 'ignore').rename(columns ={'Individual Responses':'Responses'})
+        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
+        df['course_uuid'] = (df['Subject Code']+df['Course Number'].apply(str)+df['Section Title'].apply(lambda x: x[:-4])).apply(str).apply(hash).astype('int32').abs().apply(str) 
+        df['Question Number'] = df['Question Number'].astype(int)
+        df['Term Code'] = df['Term Code'].astype(int)
+        # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
+        df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
+        df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
 
         ag_df = data_aggregation.aggregate_data(df)
 
         # There should be no entries with the same course name, Instructor ID, and Term Code, so the below should be false
-        num_repeats = len(ag_df[ag_df[['course_uuid', 'Term Code','Instructor ID']].duplicated() == True])
+        num_repeats = len(ag_df[ag_df[['Subject Code', 'Course Number', 'Course Title', 'Term Code','Instructor ID']].duplicated() == True])
 
         return self.assertEqual(0, num_repeats)
 

@@ -1,113 +1,3 @@
-# Builds necessary dictionaries to allow mapping of values from the output data to courses, instructors, etc.
-# Instructor_question_weighting: {'old_EN': {1: 0, 2: 1.5, 3: 2.0, 4: 0.15, 5: 1.5, 6: 1.5, 7: 0, 8: 0, 9: 0, 10: 3.5}, 'EN': {2: 1,4: 1, 5: 1, 6: 1, 7: 1, 10: 1, 16: 1, 33: 1, 27: 1}, 'ED': {2: 1, 3: 1, 4: 1, 6: 1, 8: 1}}
-Instructor_question_weighting:
-    EN:
-        '2': 1
-        '3': 1
-        '4': 1
-        '5': 1
-        '6': 1
-        '7': 1
-        '10': 1
-        '16': 1
-        '27': 1
-        '33': 1
-    ED:
-        '2': 1
-        '3': 1
-        '4': 1
-        '6': 1
-        '8': 1
-    AS:
-        '4': 1
-        '5': 1
-        '6': 1
-        '8': 1
-        '11': 1
-
-    ARC:
-        '1': 1
-        '2': 1
-        '4': 1
-        '5': 1
-        '7': 1
-        '8': 1
-        '9': 1
-        '11': 1
-        '12': 1
-        '17': 1
-        '21': 1
-    BUS: 
-        '1': 1
-        '2': 1
-        '3': 1
-        '4': 1
-        '5': 1
-        '6': 1
-        '7': 1
-        '8': 1
-        '9': 1
-        '10': 1
-        '11': 1
-        '12': 1
-        '13': 1
-        '14': 1
-    FARTS:
-        '1': 1
-        '2': 1
-        '3': 1
-        '4': 1
-        '5': 1
-        '6': 1
-        '7': 1
-        '8': 1
-        '9': 1
-        '11': 1
-        '12': 1
-        '14': 1
-        '17': 1
-        '21': 1
-    GEO: 
-        '1': 1
-        '2': 1
-        '3': 1
-        '4': 1
-        '5': 1
-        '6': 1
-        '7': 1
-        '8': 1
-        '12': 1
-        '23': 1
-    INTS: 
-        '4': 1
-        '5': 1
-        '6': 1
-        '8': 1
-        '11': 1
-    JRNL:
-        '1': 1
-        '4': 1
-        '8': 1
-        '9': 1
-        '11': 1
-    NRG: 
-        '1': 1
-        '2': 1
-        '3': 1
-        '4': 1
-        '5': 1
-        '6': 1
-        '7': 1
-        '8': 1
-        '12': 1
-        '13': 1
-        '17': 1
-        '19': 1
-        '23': 1
-
-
-# This maps all questions to equal values. Not perfect but its a temp solution, pending improvement.
-
 # The term code dict maps the term code (6 digit code) to a more readable format (e.g., Spring 2017)
 Term_code_dict: {'201010': 'Fall 2010',
  '201020': 'Spring 2010',
@@ -151,10 +41,39 @@ Term_code_dict: {'201010': 'Fall 2010',
  '202310': 'Fall 2023',
  '202320': 'Spring 2023',
  '202330': 'Summer 2023'} 
- 
 
-College_code_dict: {'EN': 'Gallogly College of Engineering', 'ED':'Jeanine Rainbolt College of Education'}
+# These map the headers in the college to the short names in the db. 
+# Note that short names are just first char of each word in the College Name, w/o spaces.
+header_col_mapper: {'College of Architecture': 'CoA',
+'College of Arts and Sciences': 'CoAaS',
+'College of Atmospheric & Geographic Sciences': 'CoA&GS',
+'College of Continuing Education - Department of Aviation': 'CoCE-DoA',
+'Michael F. Price College of Business': 'MFPCoB',
+'Melbourne College of Earth and Energy': 'MCoEaE',
+'Jeannine Rainbolt College of Education': 'JRCoE',
+'Gallogly College of Engineering': 'GCoE',
+'Weitzenhoffer Family College of Fine Arts': 'WFCoFA',
+'Honors College': 'HC', 'College of International Studies': 'CoIS',
+'Gaylord College of Journalism and Mass Communication': 'GCoJaMC',
+'College of Professional and Continuing Studies': 'CoPaCS',
+'University College': 'UC', 'Center for Independent and Distance Learning': 'CfIaDL',
+'Expository Writing Program': 'EWP', 'ROTC - Air Force': 'R-AF'}
 
+# DEPRECATED
+# Builds necessary dictionaries to allow mapping of values from the output data to courses, instructors, etc.
+# Build a dict mapping Colleges to Question numbers to weight if thats something we pursue. See example below. Used in data agg for weighting questions.
+# Instructor_question_weighting:
+#     GCoE:
+#         '2': 1
+#         '3': 1
+#         '4': 1
+#         '5': 1
+#         '6': 1
+#         '7': 1
+#         '10': 1
+#         '16': 1
+#         '27': 1
+#         '33': 1
 
 # This dictionary below shows the desired output mappings for each column in aggregated data, alongside a brief description
 # Ag_df_indices:{0: 'Term Code',
