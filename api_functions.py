@@ -728,11 +728,3 @@ if __name__ == '__main__':
     pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 624629390))
     pprint.pprint(InstructorFig3TableBar(mongo_driver(), 624629390)) # Make sure the full unmodified dataset is uploaded before running
     pprint.pprint(InstructorChipAPI(mongo_driver(), 624629390))
-    
-    # Generate random course/instructor IDs for the test
-    response = SearchAutocomplete(mongo_driver(), 'course')
-    res_dict = json.loads(json.dumps(response))
-    id_list = [el['value'] for el in res_dict]
-    import random
-    choices = random.choices(id_list, k=8)
-    print(choices)

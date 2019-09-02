@@ -3,6 +3,8 @@ import mongo
 import json
 import data_aggregation
 import pandas as pd
+import random
+from pprint import pprint
 from api_functions import *
 
 # Define Names of the collections
@@ -57,7 +59,14 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses - You can generate this by running api_functions.py
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
-        test_id_list = ['2138719867', '1306152537', '399751022', '822405920', '1097842128', '933781764', '2035109317', '1842309848']
+        # Generate random course/instructor IDs for the test
+        response = SearchAutocomplete(mongo_driver(), 'course')
+        res_dict = json.loads(json.dumps(response))
+        id_list = [el['value'] for el in res_dict]
+        test_id_list = random.choices(id_list, k=8)
+        print('Testing for the following instructor IDs, generated randomly from viable options: ')
+        pprint.pprint(test_id_list)
+
         # Create connection to the db
         db = mongo.mongo_driver()
 
@@ -87,9 +96,17 @@ class basictest(unittest.TestCase):
         This unit test will ping each of the currently created api endings with a variety of different instructors to make sure they hit.
 
         '''
-        # Define the currently working courses
+        # Define the currently working course APIs
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
-        test_id_list = [1658598965, 1768717589, 1108834739, 1602649677, 656300063, 1734268795, 1379226855, 1099331640]
+
+        # Generate random course/instructor IDs for the test
+        response = SearchAutocomplete(mongo_driver(), 'instructor')
+        res_dict = json.loads(json.dumps(response))
+        id_list = [el['value'] for el in res_dict]
+        test_id_list = random.choices(id_list, k=8)
+        print('Testing for the following instructor IDs, generated randomly from viable options: ')
+        pprint.pprint(test_id_list)
+
         # Create connection to the db
         db = mongo.mongo_driver()
         try:
