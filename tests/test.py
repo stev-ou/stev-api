@@ -5,20 +5,21 @@ import data_aggregation
 import pandas as pd
 from api_functions import *
 
+# Define Names of the collections
+DB_NAME = "reviews-db-v1"
+COLLECTION_NAME = "aggregated_reviews"
+
 class basictest(unittest.TestCase):
     """ Basic tests """
-
     # Test for mongo.py
     def test_connection(self):
         '''
         This unittest will test whether the mongo driver is connecting successfully to:
-        Database name: "reviews-db"
+        Database name: 
         collection name = "aggregated_GCOE"
         '''
         try:
             conn = mongo.mongo_driver()
-            DB_NAME = "reviews-db"
-            COLLECTION_NAME = "aggregated_GCOE"
             conn.get_db_collection(DB_NAME, COLLECTION_NAME)
             conn_status = True
         except:
@@ -34,7 +35,7 @@ class basictest(unittest.TestCase):
         '''
 
         # Test the combined means
-        sd = data_aggregation.combine_standard_deviations([4,6],[50,9], [47,100]) # sd, means, populations, weights
+        sd = data_aggregation.combine_standard_deviations(np.array([4,6]),np.array([50,9]), np.array([47,100])) # sd, means, populations, weights
         # Note that the above returns a tuple of combined (mean, sd) and thus tests for both mean and sd
 
         if round(sd, 2) == 19.88:
@@ -54,10 +55,9 @@ class basictest(unittest.TestCase):
         This unit test will ping each of the currently created api endings with a variety of different courses to make sure they hit.
 
         '''
-        # Define the currently working courses
+        # Define the currently working courses - You can generate this by running api_functions.py
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
-        test_id_list = ['pe3223', 'engr2002', 'ahi5993', 'hist3863', 'ltrs3813', 'span5970', 'lat2113', \
-        'eds6793', 'jmc4633', 'munm2313']
+        test_id_list = ['2138719867', '1306152537', '399751022', '822405920', '1097842128', '933781764', '2035109317', '1842309848']
         # Create connection to the db
         db = mongo.mongo_driver()
 
@@ -89,8 +89,7 @@ class basictest(unittest.TestCase):
         '''
         # Define the currently working courses
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
-        test_id_list = [704184517, 1526026687, 1301025910, 1020330180,
-                        1830690322, 433680882, 2121674585]
+        test_id_list = [1658598965, 1768717589, 1108834739, 1602649677, 656300063, 1734268795, 1379226855, 1099331640]
         # Create connection to the db
         db = mongo.mongo_driver()
         try:
@@ -122,6 +121,15 @@ class basictest(unittest.TestCase):
         # Test the data aggregation for unique entries
         df = pd.read_csv('data/GCOE.csv')
         df.rename({'Instructor 1 ID':'Instructor ID', 'Instructor 1 First Name':'Instructor First Name', 'Instructor 1 Last Name':'Instructor Last Name'}, axis=1, inplace=True)
+        # Condition the df prior to aggregation
+        df = df.drop(['_id'],axis=1, errors = 'ignore').rename(columns ={'Individual Responses':'Responses'})
+        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
+        df['course_uuid'] = (df['Subject Code']+df['Course Number'].apply(str)+df['Section Title'].apply(lambda x: x[:-4])).apply(str).apply(hash).astype('int32').abs().apply(str) 
+        df['Question Number'] = df['Question Number'].astype(int)
+        df['Term Code'] = df['Term Code'].astype(int)
+        # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
+        df['Instructor First Name'] = df['Instructor First Name'].apply(str.title)
+        df['Instructor Last Name'] = df['Instructor Last Name'].apply(str.title)
 
         ag_df = data_aggregation.aggregate_data(df)
 

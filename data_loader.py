@@ -76,8 +76,8 @@ def update_database(force_update=False):
             collection = conn.get_db_collection(DB_NAME, 'aggregated_' + ocr_coll)
 
             # Create the aggregated database 
-            print('Aggregating the -' + ocr_coll + '- collection. This can take ~5 minutes large datasets.')
-            ag_df = aggregate_data(df).reset_index()
+            print('Aggregating the -' + ocr_coll + '- collection. This typically takes 5-10 minutes.')
+            ag_df = aggregate_data(df)
 
             # load the db for the given data file into a json format
             ag_records = json.loads(ag_df.T.to_json()).values()
@@ -86,6 +86,7 @@ def update_database(force_update=False):
             collection.delete_many({})
 
             # Push the aggregated df to mongo
+            print(f'Uploading aggregated collection - aggregated_{ocr_coll}- to {DB_NAME}')
             for i in tqdm(range(n_splits)): # Splits ag_df into n_splits parts
                 # load the db for the given data file into a json format
                 records = ag_df[(i)*int(len(ag_df)/n_splits):(i+1)*int(len(ag_df)/n_splits)].to_dict('records')
