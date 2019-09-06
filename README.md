@@ -47,7 +47,7 @@ To query data from the API, you just append the appropriate string to the api. C
 **Search By Course**:
 To obtain a JSON object with the names and Course IDs of all courses, append the string `courses/all` to the root api. Then, you can search through this to find the code of the course you are interested in. To obtain data for a specific course, append `courses/{hashed_course_ID}/{api suffix}` to the API string. Courses are hashed into integer values, which can be obtained from `courses/all` endpoint. So for the course CS5043: Advanced Machine Learning, we will obtain its hashed ID - 1050273945 - then append this to the root and add a suffix from the list - *figure1*, *figure2*, *figure3*, or *figure4*.
 
-**Example:** Full URL address for Numerical Methods api (e.g., Figure 1):
+**Example:** Full URL address for Advanced Machine Learning api (e.g., Figure 1):
 
 https://api.evals.info/api/v0/courses/1050273945/figure1
 
