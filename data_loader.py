@@ -39,10 +39,13 @@ def update_database(force_update=False):
         ocr_db = conn.get_db_collection(OCR_DB_NAME, ocr_coll)
         df = pd.DataFrame(list(ocr_db.find()))
 
+        # Define new hash function
+        sha224_hash = lambda x: int(hashlib.sha224(x.encode('utf-8')).hexdigest()[:8], 16)
+
         # Condition the df prior to aggregation
         df = df.drop(['_id'],axis=1, errors = 'ignore').rename(columns ={'Individual Responses':'Responses'})
-        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(hash).astype('int32').abs()
-        df['course_uuid'] = (df['Subject Code']+df['Course Number'].apply(str)+df['Section Title'].apply(lambda x: x[:-4])).apply(str).apply(hash).astype('int32').abs().apply(str) 
+        df['Instructor ID'] = (df['Instructor First Name']+df['Instructor Last Name']).apply(str).apply(sha224_hash).astype('int32').abs()
+        df['course_uuid'] = (df['Subject Code']+df['Course Number'].apply(str)+df['Section Title'].apply(lambda x: x[:-4])).apply(str).apply(sha224_hash).astype('int32').abs().apply(str) 
         df['Question Number'] = df['Question Number'].astype(int)
         df['Term Code'] = df['Term Code'].astype(int)
         # Make sure the First and Last names are in camelcase; i.e. no CHUNG-HAO LEE
