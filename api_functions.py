@@ -9,15 +9,13 @@ import yaml
 import pymongo
 import numpy as np
 from datetime import datetime
-from constants import SEMESTER_MAPPINGS
+from constants import SEMESTER_MAPPINGS, DB_NAME, COLLECTION_NAME, AGGREGATED_COLLECTION_NAME
 
-# Establish the DB Name 
-DB_NAME = "reviews-db-v1"
 
 # This is the set of that will be queried by the API
 # The order is important, collections are searched in this order
-COLLECTION_NAMES = ['reviews'] #,'JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
-AGG_COLLECTION_NAMES = ["aggregated_"+ name for name in COLLECTION_NAMES]
+COLLECTION_NAMES = list(COLLECTION_NAME) #,'JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+AGG_COLLECTION_NAMES = list(AGGREGATED_COLLECTION_NAME)
 
 # This is the period that will be considered "current" by the API. 
 # These are term codes, where the first 4 digits corresponds to year, last 2 digits to semester (10:fall, 20:spring, 30:summer), 

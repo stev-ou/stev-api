@@ -2,6 +2,7 @@
 DB_NAME = "reviews-db-v1"
 COLLECTION_NAME = "reviews"
 AGGREGATED_COLLECTION_NAME='aggregated_reviews'
+OCR_DB_NAME = 'ocr_db_v1'
 
 # The term code dict maps the term code (6 digit code) to a more readable format (e.g., Spring 2017)
 SEMESTER_MAPPINGS= {'201010': 'Fall 2010',

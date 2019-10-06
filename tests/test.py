@@ -6,10 +6,7 @@ import pandas as pd
 import random
 from pprint import pprint
 from api_functions import *
-
-# Define Names of the collections
-DB_NAME = "reviews-db-v1"
-COLLECTION_NAME = "aggregated_reviews"
+from constants import DB_NAME, COLLECTION_NAME, AGGREGATED_COLLECTION_NAME
 
 class basictest(unittest.TestCase):
     """ Basic tests """
@@ -17,8 +14,8 @@ class basictest(unittest.TestCase):
     def test_connection(self):
         '''
         This unittest will test whether the mongo driver is connecting successfully to:
-        Database name: 
-        collection name = "aggregated_GCOE"
+        Database name: DB_NAME
+        collection name: COLLECTION_NAME
         '''
         try:
             conn = mongo.MongoDriver()
