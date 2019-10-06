@@ -11,14 +11,15 @@ from gql_schema import schema
 from mongoengine import connect
 
 # Establish a database connection
-DB_NAME = "reviews-db"
-COLLECTION_NAME = "reviews-collection"
+DB_NAME = "reviews-db-v1"
+COLLECTION_NAME = "reviews"
+AGGREGATED_COLLECTION_NAME='aggregated_reviews'
 
 # base route for this api version
 base_api_route = '/api/v0/'
 
 db = MongoDriver()
-gql_db = connect(host="mongodb+srv://zach:G8GqPsUgP6b9VUvc@cluster0-svcn3.gcp.mongodb.net/reviews-db?retryWrites=true")
+gql_db = connect(host=f"mongodb+srv://zach:G8GqPsUgP6b9VUvc@cluster0-svcn3.gcp.mongodb.net/{DB_NAME}?retryWrites=true")
 
 # PreCompute the instructor and course lists
 instructor_list = api.SearchAutocomplete(db, 'instructor')
@@ -28,10 +29,10 @@ app = Flask(__name__)
 CORS(app)
 
 # connect GQL endpoints
-app.add_url_rule('/gql', view_func=GraphQLView.as_view('graphql',
+app.add_url_rule(f'{base_api_route}gql', view_func=GraphQLView.as_view('graphql',
                                                         schema=schema,
                                                         graphiql=False))
-app.add_url_rule('/giql', view_func=GraphQLView.as_view('graphiql',
+app.add_url_rule(f'{base_api_route}giql', view_func=GraphQLView.as_view('graphiql',
                                                         schema=schema,
                                                         graphiql=True))
 

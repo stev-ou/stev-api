@@ -7,7 +7,7 @@ import hashlib
 from tqdm import tqdm
 
 # local
-from mongo import mongo_driver as db_conn
+from mongo import MongoDriver as db_conn
 # aggregate_data.py contains the function to aggregate the data
 from data_aggregation import aggregate_data
 

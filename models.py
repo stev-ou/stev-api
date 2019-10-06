@@ -3,8 +3,11 @@ from mongoengine.fields import (
     FloatField, StringField, IntField
 )
 
+COLLECTION_NAME = "reviews"
+AGGREGATED_COLLECTION_NAME='aggregated_reviews'
+
 class Review(Document):
-    meta = {'collection': 'ARC'}
+    meta = {'collection': COLLECTION_NAME}
     college_code = StringField(name="College Code", help_text="The \
         abbreviated name of the college ")
     college_mean = FloatField(name="College Mean")
@@ -32,7 +35,7 @@ class Review(Document):
     responses = IntField(name="Responses")
 
 class AggregatedReviews(Document):
-    meta = {'collection': 'aggregated_ARC'}
+    meta = {'collection': AGGREGATED_COLLECTION_NAME}
     college_code = StringField(name="College Code")
     course_number = IntField(name="Course Number")
     instructor_enrollment = IntField(name="Instructor Enrollment")

@@ -4,12 +4,10 @@ from graphene_mongo import MongoengineConnectionField, MongoengineObjectType
 from models import Review as ReviewModel
 from models import AggregatedReviews as AggregatedReviewsModel
 
-
 class Review(MongoengineObjectType):
     """ Individial student review. """
     class Meta:
         model = ReviewModel
-
 
 class AggregatedReviews(MongoengineObjectType):
     """ Object representing aggregated reviews. """
@@ -18,9 +16,6 @@ class AggregatedReviews(MongoengineObjectType):
 
 class Query(graphene.ObjectType):
     """ Full-search query.
-
-    [CURRENTLY ONLY SEARCHING ONE COLLECTION RIP]
-
     Please use a smaller query (n=100) to perform experiments/exploration, then
     use '..All' sparingly to retrieve the data you need. """
 
