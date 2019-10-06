@@ -21,8 +21,7 @@ class basictest(unittest.TestCase):
         collection name = "aggregated_GCOE"
         '''
         try:
-            # conn = mongo.MongoDriver()
-            conn = mongo.mongo_driver()
+            conn = mongo.MongoDriver()
             conn.get_db_collection(DB_NAME, COLLECTION_NAME)
             conn_status = True
         except:
@@ -61,7 +60,7 @@ class basictest(unittest.TestCase):
         # Define the currently working courses - You can generate this by running api_functions.py
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
         # Generate random course/instructor IDs for the test
-        response = SearchAutocomplete(mongo_driver(), 'course')
+        response = SearchAutocomplete(mongo.MongoDriver(), 'course')
         res_dict = json.loads(json.dumps(response))
         id_list = [el['value'] for el in res_dict]
         test_id_list = random.choices(id_list, k=8)
@@ -101,7 +100,7 @@ class basictest(unittest.TestCase):
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
 
         # Generate random course/instructor IDs for the test
-        response = SearchAutocomplete(mongo_driver(), 'instructor')
+        response = SearchAutocomplete(mongo.MongoDriver(), 'instructor')
         res_dict = json.loads(json.dumps(response))
         id_list = [el['value'] for el in res_dict]
         test_id_list = random.choices(id_list, k=8)
