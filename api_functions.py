@@ -11,11 +11,10 @@ import numpy as np
 from datetime import datetime
 from constants import SEMESTER_MAPPINGS, DB_NAME, COLLECTION_NAME, AGGREGATED_COLLECTION_NAME
 
-
 # This is the set of that will be queried by the API
 # The order is important, collections are searched in this order
-COLLECTION_NAMES = list(COLLECTION_NAME) #,'JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
-AGG_COLLECTION_NAMES = list(AGGREGATED_COLLECTION_NAME)
+COLLECTION_NAMES = [COLLECTION_NAME] #,'JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+AGG_COLLECTION_NAMES = [AGGREGATED_COLLECTION_NAME]
 
 # This is the period that will be considered "current" by the API. 
 # These are term codes, where the first 4 digits corresponds to year, last 2 digits to semester (10:fall, 20:spring, 30:summer), 
