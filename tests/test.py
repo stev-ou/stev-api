@@ -6,10 +6,7 @@ import pandas as pd
 import random
 from pprint import pprint
 from api_functions import *
-
-# Define Names of the collections
-DB_NAME = "reviews-db-v1"
-COLLECTION_NAME = "aggregated_reviews"
+from constants import DB_NAME, COLLECTION_NAME, AGGREGATED_COLLECTION_NAME
 
 class basictest(unittest.TestCase):
     """ Basic tests """
@@ -17,11 +14,11 @@ class basictest(unittest.TestCase):
     def test_connection(self):
         '''
         This unittest will test whether the mongo driver is connecting successfully to:
-        Database name: 
-        collection name = "aggregated_GCOE"
+        Database name: DB_NAME
+        collection name: COLLECTION_NAME
         '''
         try:
-            conn = mongo.mongo_driver()
+            conn = mongo.MongoDriver()
             conn.get_db_collection(DB_NAME, COLLECTION_NAME)
             conn_status = True
         except:
@@ -60,7 +57,7 @@ class basictest(unittest.TestCase):
         # Define the currently working courses - You can generate this by running api_functions.py
         course_function_list = [CourseFig1Table, CourseFig2Chart, CourseFig3Timeseries, CourseFig4TableBar] 
         # Generate random course/instructor IDs for the test
-        response = SearchAutocomplete(mongo_driver(), 'course')
+        response = SearchAutocomplete(mongo.MongoDriver(), 'course')
         res_dict = json.loads(json.dumps(response))
         id_list = [el['value'] for el in res_dict]
         test_id_list = random.choices(id_list, k=8)
@@ -68,7 +65,7 @@ class basictest(unittest.TestCase):
         pprint.pprint(test_id_list)
 
         # Create connection to the db
-        db = mongo.mongo_driver()
+        db = mongo.MongoDriver()
 
         # Try the function for autocomplete for all courses
         try:
@@ -100,7 +97,7 @@ class basictest(unittest.TestCase):
         instructor_function_list = [InstructorFig1Table, InstructorFig2Timeseries, InstructorFig3TableBar]
 
         # Generate random course/instructor IDs for the test
-        response = SearchAutocomplete(mongo_driver(), 'instructor')
+        response = SearchAutocomplete(mongo.MongoDriver(), 'instructor')
         res_dict = json.loads(json.dumps(response))
         id_list = [el['value'] for el in res_dict]
         test_id_list = random.choices(id_list, k=8)
@@ -108,7 +105,7 @@ class basictest(unittest.TestCase):
         pprint.pprint(test_id_list)
 
         # Create connection to the db
-        db = mongo.mongo_driver()
+        db = mongo.MongoDriver()
         try:
             print('SearchAutocomplete for all instructors')
             response = SearchAutocomplete(db, search_type='instructor')

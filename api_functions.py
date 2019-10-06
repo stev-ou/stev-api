@@ -1,6 +1,6 @@
 import pprint
 import json
-from mongo import mongo_driver
+from mongo import MongoDriver
 import pandas as pd
 from collections import Counter
 import re
@@ -9,30 +9,17 @@ import yaml
 import pymongo
 import numpy as np
 from datetime import datetime
-
-# Establish the DB Name 
-DB_NAME = "reviews-db-v1"
+from constants import SEMESTER_MAPPINGS, DB_NAME, COLLECTION_NAME, AGGREGATED_COLLECTION_NAME
 
 # This is the set of that will be queried by the API
 # The order is important, collections are searched in this order
-COLLECTION_NAMES = ['reviews'] #,'JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
-AGG_COLLECTION_NAMES = ["aggregated_"+ name for name in COLLECTION_NAMES]
+COLLECTION_NAMES = [COLLECTION_NAME] #,'JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+AGG_COLLECTION_NAMES = [AGGREGATED_COLLECTION_NAME]
 
 # This is the period that will be considered "current" by the API. 
 # These are term codes, where the first 4 digits corresponds to year, last 2 digits to semester (10:fall, 20:spring, 30:summer), 
 # e.g. 201710 is Fall 2017
 CURRENT_SEMESTERS = [201920, 201810, 201820, 201830, 201710, 201720, 201730, 201610 ]
-
-# Import the mappings to find the semester for each course
-# Read in the question mappings values from the mappings.yaml
-# Get file location for mappings.yaml and reading data
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-file_path = __location__+"/mappings.yaml"
-
-with open(file_path) as f:
-    # use safe_load instead load
-    mappings = yaml.safe_load(f)
-    SEMESTER_MAPPINGS = mappings['Term_code_dict']
 
 # Sort by term code
 def sort_by_term_code(semester_int_list):
@@ -59,7 +46,7 @@ def query_df_from_mongo(db,coll_filter, collections = AGG_COLLECTION_NAMES):
     This function will use a coll_filter, AKA a cursor, to query the collections in COLLECTION_NAMES and will then return 
     the db and the coll_name where the filter was found.
     Inputs:
-    db - a connection to the mongodb, or more concretely a mongo_driver() object
+    db - a connection to the mongodb, or more concretely a MongoDriver() object
     coll_filter - a valid filter of the form required by mongodb
     collections (optional) - a list of collections to search through for the cursor/filter
 
@@ -106,7 +93,7 @@ def CourseFig1Table(db, uuid):
     rating each professor received, and what average rating each instructor received on average 
     in the most recent semester of data.
     api schema defined in api_schema.py
-    Inputs: db - a connection to the mongodb, i.e. db = mongo_driver()
+    Inputs: db - a connection to the mongodb, i.e. db = MongoDriver()
             valid_uuid - a validated uuid from the 'uuid' field in the dataframe
     Returns: a valid json needed to generate the figure
     '''
@@ -187,7 +174,7 @@ def CourseFig2Chart(db, valid_uuid):
     This function will build the json for the response to build the relative department rating figure 
     (2nd from top on the left side). The json has structure given in schema.json, for this rating.
 
-    Inputs: db - a connection to the mongodb, i.e. db=mongo_driver()
+    Inputs: db - a connection to the mongodb, i.e. db=MongoDriver()
             valid_uuid - a validated uuid from the 'uuid' field in the dataframe
     Returns: a valid json needed to generate the figure
     '''
@@ -728,3 +715,10 @@ if __name__ == '__main__':
     pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 624629390))
     pprint.pprint(InstructorFig3TableBar(mongo_driver(), 624629390)) # Make sure the full unmodified dataset is uploaded before running
     pprint.pprint(InstructorChipAPI(mongo_driver(), 624629390))
+    # Randomly select n entries
+    # response = SearchAutocomplete(MongoDriver(), 'course')
+    # res_dict = json.loads(json.dumps(response))
+    # id_list = [el['value'] for el in res_dict]
+    # import random
+    # choices = random.choices(id_list, k=8)
+    # print(choices)

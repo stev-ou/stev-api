@@ -1,21 +1,20 @@
 # global/PyPI
 import pandas as pd
+from mongo import MongoDriver as db_conn
 import json
 import os
 import hashlib
 from tqdm import tqdm
 
 # local
-from mongo import mongo_driver as db_conn
+from mongo import MongoDriver as db_conn
 # aggregate_data.py contains the function to aggregate the data
 from data_aggregation import aggregate_data
+from constants import DB_NAME, COLLECTION_NAME, OCR_DB_NAME
 
-# Define the name of the database and the name of the collection. Insert each .csv record as a document within the collection
-DB_NAME = "reviews-db-v1" # practice
-OCR_DB_NAME = 'ocr_db_v1'
 ocr_collections = ['reviews']#, 'CoAaS', 'CoA&GS', 'CoCE-DoA', 'MFPCoB', 'MCoEaE', 'JRCoE', 'GCoE', 'WFCoFA', 'HC', 'CoIS', 'GCoJaMC', 'CoPaCS', 'UC', 'CfIaDL', 'EWP', 'R-AF']
 
-# Define the number of splits; Required to upload data in packets to avoid AutoReconnect Error from Mongo
+# Define the number of packets; Required to upload data in packets to avoid AutoReconnect Error from Mongo
 n_splits = 100
 
 ### DEBUG - force_update is always true - off in prod
