@@ -6,23 +6,22 @@ from collections import Counter
 import re
 import os
 import yaml
-from data_aggregation import combine_means
 import pymongo
 import numpy as np
 from datetime import datetime
 
 # Establish the DB Name 
-DB_NAME = "reviews-db"
+DB_NAME = "reviews-db-v1"
 
 # This is the set of that will be queried by the API
 # The order is important, collections are searched in this order
-COLLECTION_NAMES = ['GCOE','JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
+COLLECTION_NAMES = ['reviews'] #,'JRCOE', 'COAS', 'ARC', 'BUS', 'FARTS', 'GEO', 'INTS', 'JRNL', 'NRG']
 AGG_COLLECTION_NAMES = ["aggregated_"+ name for name in COLLECTION_NAMES]
 
 # This is the period that will be considered "current" by the API. 
 # These are term codes, where the first 4 digits corresponds to year, last 2 digits to semester (10:fall, 20:spring, 30:summer), 
 # e.g. 201710 is Fall 2017
-CURRENT_SEMESTERS = [201810, 201820, 201830, 201710, 201720, 201730, 201610, 201620, 201630]
+CURRENT_SEMESTERS = [201920, 201810, 201820, 201830, 201710, 201720, 201730, 201610 ]
 
 # Import the mappings to find the semester for each course
 # Read in the question mappings values from the mappings.yaml
@@ -69,7 +68,7 @@ def query_df_from_mongo(db,coll_filter, collections = AGG_COLLECTION_NAMES):
     coll_name - the collection name (str) where the coll_filter was found
     """
     for coll_name in collections:
-        coll = db.get_db_collection('reviews-db', coll_name)
+        coll = db.get_db_collection(DB_NAME, coll_name)
         # Use the database query to pull needed data
         cursor = coll.find(coll_filter)
         # For whatever reason, generating a dataframe clears the cursor, so get population here
@@ -692,7 +691,7 @@ def SearchAutocomplete(db, search_type='course'):
     
     df = pd.DataFrame()
     for coll_name in AGG_COLLECTION_NAMES:
-        coll = db.get_db_collection('reviews-db', coll_name)
+        coll = db.get_db_collection(DB_NAME, coll_name)
         # Use the database query to pull needed data
         cursor = coll.find(coll_filter)
         # For whatever reason, generating a dataframe clears the cursor, so get population here
@@ -720,20 +719,19 @@ if __name__ == '__main__':
     # print(test)
     # sort_by_term_code([201710, 201820, 201620, 201410, 201110, 201630, 201610])
 
-    # uuid_df, coll_name = query_df_from_mongo(MongoDriver(),cursor)
-    # pprint.pprint(CourseFig1Table(MongoDriver(), 'engr2002'))
-    # pprint.pprint(CourseFig4TableBar(MongoDriver(), 'edss3553'))
-    # pprint.pprint(InstructorFig1Table(MongoDriver(), 1124723821))
-    # pprint.pprint(InstructorFig2Timeseries(MongoDriver(), 1124723821))
-    pprint.pprint(InstructorFig3TableBar(MongoDriver(), 1446079033))
-    pprint.pprint(InstructorChipAPI(MongoDriver(), 302554668))
+    # uuid_df, coll_name = query_df_from_mongo(mongo_driver(),cursor)
+    pprint.pprint(CourseFig1Table(mongo_driver(), "753572960")) # Statics
+    pprint.pprint(CourseFig2Chart(mongo_driver(), "753572960"))
+    pprint.pprint(CourseFig3Timeseries(mongo_driver(), "753572960"))
+    pprint.pprint(CourseFig4TableBar(mongo_driver(), "753572960")) # Make sure the full unmodified dataset is uploaded before running
+    pprint.pprint(InstructorFig1Table(mongo_driver(), 624629390)) # Janet Allen
+    pprint.pprint(InstructorFig2Timeseries(mongo_driver(), 624629390))
+    pprint.pprint(InstructorFig3TableBar(mongo_driver(), 624629390)) # Make sure the full unmodified dataset is uploaded before running
+    pprint.pprint(InstructorChipAPI(mongo_driver(), 624629390))
+    # Randomly select n entries
     # response = SearchAutocomplete(MongoDriver(), 'course')
     # res_dict = json.loads(json.dumps(response))
     # id_list = [el['value'] for el in res_dict]
     # import random
     # choices = random.choices(id_list, k=8)
     # print(choices)
-
-
-
-
