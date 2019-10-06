@@ -9,6 +9,7 @@ import yaml
 import pymongo
 import numpy as np
 from datetime import datetime
+from constants import SEMESTER_MAPPINGS
 
 # Establish the DB Name 
 DB_NAME = "reviews-db-v1"
@@ -22,17 +23,6 @@ AGG_COLLECTION_NAMES = ["aggregated_"+ name for name in COLLECTION_NAMES]
 # These are term codes, where the first 4 digits corresponds to year, last 2 digits to semester (10:fall, 20:spring, 30:summer), 
 # e.g. 201710 is Fall 2017
 CURRENT_SEMESTERS = [201920, 201810, 201820, 201830, 201710, 201720, 201730, 201610 ]
-
-# Import the mappings to find the semester for each course
-# Read in the question mappings values from the mappings.yaml
-# Get file location for mappings.yaml and reading data
-__location__ = os.path.realpath(os.path.join(os.getcwd(), os.path.dirname(__file__)))
-file_path = __location__+"/mappings.yaml"
-
-with open(file_path) as f:
-    # use safe_load instead load
-    mappings = yaml.safe_load(f)
-    SEMESTER_MAPPINGS = mappings['Term_code_dict']
 
 # Sort by term code
 def sort_by_term_code(semester_int_list):

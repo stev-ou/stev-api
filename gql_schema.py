@@ -25,6 +25,7 @@ class Query(graphene.ObjectType):
     aggregated_reviews_all = graphene.List(AggregatedReviews)
 
     def resolve_reviews(self, info, n):
+        print(info)
         return list(ReviewModel.objects[:n])
 
     def resolve_reviews_all(self, info):

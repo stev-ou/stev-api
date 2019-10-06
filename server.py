@@ -9,11 +9,7 @@ import api_functions as api
 from flask_graphql import GraphQLView
 from gql_schema import schema
 from mongoengine import connect
-
-# Establish a database connection
-DB_NAME = "reviews-db-v1"
-COLLECTION_NAME = "reviews"
-AGGREGATED_COLLECTION_NAME='aggregated_reviews'
+from constants import DB_NAME, COLLECTION_NAME, AGGREGATED_COLLECTION_NAME
 
 # base route for this api version
 base_api_route = '/api/v0/'
@@ -81,6 +77,5 @@ if __name__ == '__main__':
     #print("Updating database...")
     #update_database(force_update=False)
     #print("Done.")
-
     print("Starting server listening on port 5050...")
     app.run(host='0.0.0.0', port=5050)

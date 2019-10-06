@@ -2,29 +2,33 @@ from mongoengine import Document
 from mongoengine.fields import (
     FloatField, StringField, IntField
 )
+from constants import DB_NAME, COLLECTION_NAME, AGGREGATED_COLLECTION_NAME
 
-COLLECTION_NAME = "reviews"
-AGGREGATED_COLLECTION_NAME='aggregated_reviews'
+def declare_fields(float_fields, string_fields, int_fields):
+    """
+    Takes three lists of strings denoting fields with type float, string, or int, and converts them
+    """
+    floats = [FloatField(name=i) for i in float_fields]
+    strings = [StringField(name=i) for i in string_fields]
+    ints = [IntField(name=i) for i in int_fields]
+    return floats, strings, ints
 
 class Review(Document):
     meta = {'collection': COLLECTION_NAME}
+    # # Define the types for each field
+    # float_fields = ['Mean', 'Standard Deviation']
+    # string_fields = ['College Code', 'Instructor First Name', 'Instructor Last Name', 'Question', \
+    #     'Section Title', 'Subject Code', 'course_uuid']
+    # int_fields = ['Course Number', 'Responses', 'Question Number', 'Term Code', 'Instructor ID']
+    # f,s,i = declare_fields(float_fields, string_fields, int_fields)
+    # mean=FloatField(name='Mean')
     college_code = StringField(name="College Code", help_text="The \
         abbreviated name of the college ")
-    college_mean = FloatField(name="College Mean")
-    college_median = FloatField(name="College Median")
     course_number = IntField(name="Course Number")
-    department_mean = FloatField(name="Department Mean")
-    department_median = IntField(name="Department Median")
-    department_responses = IntField(name="Department Responses")
-    department_std_dev = FloatField(name="Department Standard Deviation")
-    individual_responses = IntField(name="Individual Responses")
     instructor_first_name = StringField(name="Instructor First Name")
     instructor_id = IntField(name="Instructor ID")
     instructor_last_name = StringField(name="Instructor Last Name")
     mean = FloatField(name="Mean")
-    median = IntField(name="Median")
-    percent_rank_college = FloatField(name="Percent Rank - College")
-    percent_rank_department = FloatField(name="Percent Rank - Department")
     question = StringField(name="Question")
     question_number = IntField(name="Question Number")
     section_number = IntField(name="Section Number")
@@ -36,6 +40,17 @@ class Review(Document):
 
 class AggregatedReviews(Document):
     meta = {'collection': AGGREGATED_COLLECTION_NAME}
+    # All features
+    # 'Course Title',    
+    # Define the types for each field
+    # float_fields = ['Avg Instructor Rating In Section', 'SD Instructor Rating In Section', 'Avg Course Rating', 'SD Course Rating', \
+    #     'Avg Department Rating', 'SD Department Rating', 'Course Rank in Department in Semester']
+    # string_fields = ['College Code', 'Instructor First Name', 'Instructor Last Name', 'Question', \
+    #     'Course Title', 'Subject Code', 'course_uuid']
+    # int_fields = ['Course Number', 'Responses', 'Term Code', 'Instructor ID', 'Instructor Enrollment', 'Course Enrollment', ]
+    # f,s,i = declare_fields(float_fields, string_fields, int_fields)
+    # Above lines wont work and I dont entirely understand why
+
     college_code = StringField(name="College Code")
     course_number = IntField(name="Course Number")
     instructor_enrollment = IntField(name="Instructor Enrollment")

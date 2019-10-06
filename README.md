@@ -36,13 +36,36 @@ https://api.evals.info/api/v0/instructors/1880901448/figure2  (Dr. Rachel Childe
 
 https://api.evals.info/api/v0/instructors/1727379373/figure3   (President David Boren)
 
+# Acquiring Data
+## Graph QL API
+We have built out a more generalizable API ending using the graphql schema, available here:
 
-## API Usage
+https://api.evals.info/api/v0/giql (Interactive; use to build your query string)
+
+https://api.evals.info/api/v0/gql (Textual; use to obtain the data in json once you've developed your query)
+ **Example Query**: 
+{
+  aggregatedReviews(n: 10) {
+  	instructorFirstName
+    instructorLastName
+    subjectCode
+    courseTitle
+  }
+}
+
+>>> Obtains the given fields for a sample of n=10 data documents
+
+This will let you download only specific features of interest from the dataset.
+
+## Downloading All Data
+We have also provided options to download the full scraped datasets in *csv* form in the **Get Involved** page of the [frontend][https://ou.evals.info/get-involved].
+
+## Figures API Usage
 We currently have an open API for accessing the information about the courses and reviews in a JSON format. You can access the API root, or base, at:
 
 https://api.evals.info/api/v0/
 
-To query data from the API, you just append the appropriate string to the api. Currently, the api is built out to serve data for the figures in the frontend, but this could easily be modified to serve desired data in an arbitrary format. Please contact [the STEV team](contact@evals.info) if you would like to discuss using this data or building out another project based on the evaluation data.
+To query data from the API, you just append the appropriate string to the api. Currently, the api is built out to serve data for the figures in the frontend, but this could easily be modified to serve desired data in an arbitrary format. 
 
 **Search By Course**:
 To obtain a JSON object with the names and Course IDs of all courses, append the string `courses/all` to the root api. Then, you can search through this to find the code of the course you are interested in. To obtain data for a specific course, append `courses/{hashed_course_ID}/{api suffix}` to the API string. Courses are hashed into integer values, which can be obtained from `courses/all` endpoint. So for the course CS5043: Advanced Machine Learning, we will obtain its hashed ID - 1050273945 - then append this to the root and add a suffix from the list - *figure1*, *figure2*, *figure3*, or *figure4*.
